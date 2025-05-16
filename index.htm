@@ -5,18 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ferramentas Multipark - Principal</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Carregar o Supabase JS no cabeçalho para garantir que esteja disponível antes de qualquer script -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.40.3/dist/umd/supabase.min.js"></script>
+    
+    <!-- Carregar Supabase v2 diretamente -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/umd/supabase.min.js"></script>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style_principal.css">
     <style>
-        /* Estilos adicionais específicos para o layout do dashboard principal, se necessário */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5; /* Cinza claro de fundo */
+            background-color: #f0f2f5;
         }
-        /* Ajustes finos podem ser movidos para style_principal.css */
     </style>
+    
+    <!-- Inicialização do Supabase inline para garantir disponibilidade -->
+    <script>
+        // Inicialização direta do Supabase
+        const SUPABASE_URL = 'https://ioftqsvjqwjeprsckeym.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvZnRxc3ZqcXdqZXByc2NrZXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU3OTI0NzgsImV4cCI6MjAzMTM2ODQ3OH0.ywBmMkZlSgYA9OGWvgQvQRV_KJXe_8-Hl-JnKdTSuQM';
+        
+        // Criar cliente Supabase global
+        window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Função para obter o cliente Supabase
+        window.getSupabaseClient = function() {
+            if (!window.supabase) {
+                console.error("ERRO CRÍTICO: Cliente Supabase não inicializado!");
+                return null;
+            }
+            return window.supabase;
+        };
+        
+        console.log("Supabase inicializado diretamente no HTML.");
+    </script>
 </head>
 <body>
     <div id="loginPagePrincipal" class="min-h-screen flex flex-col items-center justify-center p-4">
@@ -51,22 +73,21 @@
                     <option value="lisboa">LISBOA</option>
                     <option value="porto">PORTO</option>
                     <option value="faro">FARO</option>
-                    </select>
+                </select>
                 <button id="logoutButtonPrincipal" class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-md text-sm transition duration-150">Sair</button>
             </div>
         </header>
         <main>
             <h2 class="text-2xl font-semibold text-center text-gray-700 my-6">Painel de Subaplicações</h2>
             <div id="dashboardGridPrincipal" class="dashboard-grid-principal">
-                </div>
+            </div>
         </main>
         <footer class="text-center p-4 text-sm text-gray-500 mt-8">
             Ferramentas Multipark &copy; <span id="currentYear"></span>
         </footer>
     </div>
 
-    <!-- Scripts da aplicação carregados após o DOM estar pronto -->
-    <script src="js/supabaseClient.js"></script>
+    <!-- Scripts da aplicação -->
     <script src="js/auth_global.js"></script>
     <script src="js/app_principal.js"></script>
     <script>
