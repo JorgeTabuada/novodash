@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ferramentas Multipark - Principal</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Carregar o Supabase JS no cabeçalho para garantir que esteja disponível antes de qualquer script -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.40.3/dist/umd/supabase.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style_principal.css">
     <style>
@@ -63,9 +65,11 @@
         </footer>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.40.3/dist/umd/supabase.min.js"></script>
+    <!-- Scripts da aplicação carregados após o DOM estar pronto -->
     <script src="js/supabaseClient.js"></script>
-    <script src="js/auth_global.js"></script>   <script src="js/app_principal.js"></script> <script>
+    <script src="js/auth_global.js"></script>
+    <script src="js/app_principal.js"></script>
+    <script>
         document.getElementById('currentYear').textContent = new Date().getFullYear();
     </script>
 </body>
