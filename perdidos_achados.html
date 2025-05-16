@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perdidos e Achados - Ferramentas Multipark</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #333; margin: 0; }
+        .subapp-page-container { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 1rem; box-sizing: border-box; }
+        .subapp-main-content { background-color: #f0f2f5; padding: 1rem; border-radius: 0.5rem; width: 100%; max-width: 1600px; display: flex; flex-direction: column; align-items: center; margin-top: 1rem; margin-bottom: 2rem; }
+        .app-logo-styled { font-size: 1.75rem; font-weight: 700; color: #0A2B5C; margin-bottom: 1.5rem; text-align: center; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; width: 100%; }
+        .app-logo-styled .logo-p-icon { background-color: #0A2B5C; color: #fff; padding: 3px 9px; margin-right: 5px; border-radius: 4px; font-family: 'Arial Black', Gadget, sans-serif; font-size: 1.8rem; line-height: 1; }
+        .subapp-header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: #fff; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .subapp-title { font-size: 1.5rem; font-weight: 600; color: #0A2B5C; }
+        .subapp-section { width: 100%; background-color: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .subapp-section-title { font-size: 1.2rem; font-weight: 600; color: #333; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #eee; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+        .form-grid .col-span-full { grid-column: 1 / -1; }
+        .form-grid label, .filters-grid label { font-size: 0.875rem; margin-bottom: 0.25rem; color: #555; display: block;}
+        .form-grid input, .form-grid select, .form-grid textarea,
+        .filters-grid input, .filters-grid select, .file-input {
+            padding: 0.6rem; border: 1px solid #ccc; border-radius: 0.25rem; font-size: 0.9rem; background-color: #fff; width: 100%;
+        }
+        .actions-container { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem; justify-content: flex-start; } /* Changed to flex-start */
+        .action-button { background-color: #0d6efd; color: white; font-weight: 500; padding: 0.6rem 1.2rem; border-radius: 0.375rem; transition: background-color 0.2s; border: none; cursor: pointer; }
+        .action-button:hover { background-color: #0b5ed7; }
+        .action-button.secondary { background-color: #6c757d; }
+        .action-button.secondary:hover { background-color: #5a6268; }
+        .action-button.danger { background-color: #dc3545; }
+        .action-button.danger:hover { background-color: #c82333; }
+        .table-container { overflow-x: auto; margin-top: 1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 0.85em; }
+        th { background-color: #f8f9fa; font-weight: 600; color: #495057; }
+        .hidden { display: none !important; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #0d6efd; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .document-list-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border-bottom: 1px solid #eee; }
+        .tab-nav { display: flex; border-bottom: 1px solid #ccc; margin-bottom: 1.5rem; }
+        .tab-button { padding: 0.75rem 1.25rem; cursor: pointer; border: none; background-color: transparent; border-bottom: 3px solid transparent; margin-bottom: -1px; font-weight: 500; color: #555; }
+        .tab-button.active { color: #0d6efd; border-bottom-color: #0d6efd; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .status-aberto { background-color: #fef3c7; color: #92400e; } /* Amarelo */
+        .status-investigacao { background-color: #dbeafe; color: #1e40af; } /* Azul */
+        .status-resolvido { background-color: #dcfce7; color: #166534; } /* Verde */
+        .status-fechado { background-color: #e5e7eb; color: #4b5563; } /* Cinza */
+        .status-tag { padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; display: inline-block; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="subapp-page-container">
+        <div class="subapp-main-content">
+            <div class="app-logo-styled">
+                <span class="logo-p-icon">P</span><span class="logo-text-multipark">MULTIPARK</span>
+            </div>
+
+            <header class="subapp-header">
+                <h2 class="subapp-title">Perdidos e Achados</h2>
+                <button id="voltarDashboardBtnPA" class="action-button secondary">Voltar ao Dashboard</button>
+            </header>
+
+            <div class="w-full mb-6">
+                <nav class="tab-nav">
+                    <button class="tab-button active" data-tab="listaCasos">Lista de Casos</button>
+                    <button class="tab-button" data-tab="novoCaso">Registar Novo Caso</button>
+                    <button class="tab-button" data-tab="analiseCondutores">Análise de Condutores</button>
+                </nav>
+            </div>
+
+            <div id="listaCasosContent" class="tab-content active w-full">
+                <section class="subapp-section">
+                    <h3 class="subapp-section-title">Consultar Casos de Perdidos e Achados</h3>
+                    <div class="filters-grid">
+                        <div><label for="paFiltroMatricula">Matrícula:</label><input type="text" id="paFiltroMatricula" placeholder="AA-00-BB"></div>
+                        <div><label for="paFiltroAlocation">Alocation:</label><input type="text" id="paFiltroAlocation"></div>
+                        <div><label for="paFiltroCliente">Nome Cliente:</label><input type="text" id="paFiltroCliente"></div>
+                        <div>
+                            <label for="paFiltroEstado">Estado do Caso:</label>
+                            <select id="paFiltroEstado">
+                                <option value="">Todos</option>
+                                <option value="Aberto">Aberto</option>
+                                <option value="Em Investigação">Em Investigação</option>
+                                <option value="Pendente Resposta Cliente">Pendente Resposta Cliente</option>
+                                <option value="Resolvido - Devolvido">Resolvido - Devolvido</option>
+                                <option value="Resolvido - Não Encontrado">Resolvido - Não Encontrado</option>
+                                <option value="Resolvido - Rejeitado">Resolvido - Rejeitado</option>
+                                <option value="Fechado">Fechado</option>
+                            </select>
+                        </div>
+                        <button id="paAplicarFiltrosListaBtn" class="action-button">Filtrar Casos</button>
+                    </div>
+                    <div id="loadingPACasosSpinner" class="loader hidden"></div>
+                    <div class="table-container mt-4">
+                        <table id="paCasosTable">
+                            <thead>
+                                <tr>
+                                    <th>ID Caso</th>
+                                    <th>Data Queixa</th>
+                                    <th>Matrícula</th>
+                                    <th>Cliente</th>
+                                    <th>Item Perdido (Resumo)</th>
+                                    <th>Estado</th>
+                                    <th>Responsável Reg.</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paCasosTableBody"></tbody>
+                        </table>
+                        <p id="paCasosNenhumMsg" class="content-placeholder">Nenhum caso encontrado.</p>
+                    </div>
+                    <div id="paCasosPaginacao" class="mt-4 flex justify-center"></div>
+                </section>
+            </div>
+
+            <div id="novoCasoContent" class="tab-content w-full hidden">
+                <section class="subapp-section">
+                    <h3 class="subapp-section-title" id="paFormCasoTitle">Registar Novo Caso de Perdidos e Achados</h3>
+                    <form id="paNovoCasoForm">
+                        <input type="hidden" id="paCasoFormId">
+                        <div class="form-grid">
+                            <div><label for="paMatricula">Matrícula do Veículo:</label><input type="text" id="paMatricula" required></div>
+                            <div><label for="paAlocation">Alocation (Reserva):</label><input type="text" id="paAlocation" required></div>
+                            <button type="button" id="paBuscarDadosReservaBtn" class="action-button secondary self-end mb-1">Buscar Dados da Reserva</button>
+                            
+                            <div><label for="paNomeCliente">Nome do Cliente:</label><input type="text" id="paNomeCliente"></div>
+                            <div><label for="paContactoCliente">Contacto Cliente (Email/Telefone):</label><input type="text" id="paContactoCliente"></div>
+                            <div>
+                                <label for="paOrigemQueixa">Origem da Queixa:</label>
+                                <select id="paOrigemQueixa"><option value="Email">Email</option><option value="Telefone">Telefone</option><option value="Presencial">Presencial</option><option value="Outro">Outro</option></select>
+                            </div>
+                            <div><label for="paDataQueixa">Data/Hora da Queixa:</label><input type="datetime-local" id="paDataQueixa" required></div>
+                            <div class="col-span-full"><label for="paDescricaoQueixa">Descrição Detalhada da Queixa/Item Perdido:</label><textarea id="paDescricaoQueixa" rows="4" required></textarea></div>
+                            <div><label for="paParqueOcorrencia">Parque da Ocorrência:</label><select id="paParqueOcorrencia"></select></div>
+                            
+                            <div class="col-span-full">
+                                <label for="paAnexoQueixa">Anexar Email/Comunicação Inicial (Opcional):</label>
+                                <input type="file" id="paAnexoQueixa" class="file-input" accept=".pdf,.eml,.msg,.txt,.jpg,.png">
+                                <span id="paAnexoQueixaNome" class="text-xs text-gray-500 mt-1"></span>
+                            </div>
+                            {/* Secção para upload do ficheiro de movimentações - se for manual por caso */}
+                            {/* <div class="col-span-full">
+                                <label for="paFicheiroMovimentacoes">Ficheiro de Movimentações do Veículo (se aplicável):</label>
+                                <input type="file" id="paFicheiroMovimentacoes" class="file-input" accept=".csv,.xlsx">
+                            </div> */}
+                        </div>
+                        <div class="actions-container">
+                            <button type="submit" class="action-button">Registar Caso</button>
+                        </div>
+                        <div id="paNovoCasoStatus" class="mt-4 text-sm"></div>
+                    </form>
+                </section>
+            </div>
+            
+            <div id="detalheCasoContent" class="tab-content w-full hidden">
+                <section class="subapp-section">
+                    <div class="flex justify-between items-center">
+                        <h3 class="subapp-section-title" id="paDetalheCasoTitle">Detalhes do Caso #<span id="paDetalheCasoIdExibicao"></span></h3>
+                        <button type="button" id="paVoltarParaListaBtn" class="action-button secondary">Voltar à Lista</button>
+                    </div>
+                    <input type="hidden" id="paDetalheCasoIdAtual">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        <div>
+                            <h4 class="font-semibold text-gray-700">Informações da Queixa:</h4>
+                            <p class="text-sm"><strong>Cliente:</strong> <span id="detalheClienteNome"></span> (<span id="detalheClienteContacto"></span>)</p>
+                            <p class="text-sm"><strong>Matrícula/Aloc.:</strong> <span id="detalheMatriculaAloc"></span></p>
+                            <p class="text-sm"><strong>Data Queixa:</strong> <span id="detalheDataQueixa"></span></p>
+                            <p class="text-sm"><strong>Item(s):</strong> <span id="detalheItemPerdido"></span></p>
+                            <p class="text-sm"><strong>Descrição Completa:</strong></p>
+                            <p class="text-xs bg-gray-50 p-2 rounded border whitespace-pre-wrap" id="detalheDescricaoCompleta"></p>
+                            <p class="text-sm"><strong>Estado Atual:</strong> <span id="detalheEstadoAtual" class="font-bold status-tag"></span></p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-700">Anexos do Caso:</h4>
+                            <div id="paDetalheListaAnexos" class="space-y-1 text-sm max-h-40 overflow-y-auto border rounded p-2"></div>
+                            <div class="form-grid mt-2">
+                                <div><label for="paNovoAnexoTipo">Tipo:</label><select id="paNovoAnexoTipo"><option value="Email Resposta Cliente">Email Resposta</option><option value="Email Interno">Email Interno</option><option value="Foto Item Encontrado">Foto Item</option><option value="Outro">Outro</option></select></div>
+                                <div><label for="paNovoAnexoFicheiro">Ficheiro:</label><input type="file" id="paNovoAnexoFicheiro" class="file-input"></div>
+                                <button id="paAdicionarAnexoBtn" class="action-button text-sm !py-1.5 self-end">Adicionar Anexo</button>
+                            </div>
+                             <div id="paNovoAnexoStatus" class="mt-1 text-xs"></div>
+                        </div>
+                    </div>
+
+                    <h4 class="font-semibold text-gray-700 mt-6 border-t pt-4">Investigação e Movimentações:</h4>
+                    <div id="loadingMovimentacoesSpinner" class="loader hidden"></div>
+                    <p class="text-sm mb-2">Movimentações do veículo <span class="font-bold" id="detalhePeriodoInvestigacao"></span> (período em que esteve no parque):</p>
+                    <div class="table-container max-h-80 overflow-y-auto">
+                        <table id="paMovimentacoesTable">
+                            <thead><tr><th>Data/Hora Mov.</th><th>Tipo Movimento</th><th>Condutor</th><th>Parque Orig/Dest</th><th>Obs.</th></tr></thead>
+                            <tbody id="paMovimentacoesTableBody"></tbody>
+                        </table>
+                        <p id="paMovimentacoesNenhumaMsg" class="content-placeholder hidden">Nenhuma movimentação encontrada para este veículo no período relevante.</p>
+                    </div>
+                    <div class="mt-4">
+                        <label for="paNotasInvestigacao" class="block text-sm font-medium text-gray-700">Notas da Investigação (progresso, contactos, etc.):</label>
+                        <textarea id="paNotasInvestigacao" rows="4" class="w-full p-2 border rounded" placeholder="Registe aqui os passos da investigação..."></textarea>
+                    </div>
+                    
+                    <h4 class="font-semibold text-gray-700 mt-6 border-t pt-4">Resolução do Caso:</h4>
+                    <div class="form-grid">
+                        <div>
+                            <label for="paEstadoResolucao">Alterar Estado do Caso:</label>
+                            <select id="paEstadoResolucao"></select> {/* Populado com os estados */}
+                        </div>
+                        <div class="col-span-full">
+                            <label for="paDetalhesResolucaoFinal">Detalhes da Resolução Final:</label>
+                            <textarea id="paDetalhesResolucaoFinal" rows="3" placeholder="Ex: Item devolvido ao cliente em [data]. Email de confirmação enviado."></textarea>
+                        </div>
+                    </div>
+                    <div class="actions-container">
+                        <button id="paGuardarProgressoInvestigacaoBtn" class="action-button">Guardar Progresso/Resolução</button>
+                    </div>
+                    <div id="paDetalheCasoStatus" class="mt-2 text-sm"></div>
+                </section>
+            </div>
+
+            <div id="analiseCondutoresContent" class="tab-content w-full hidden">
+                <section class="subapp-section">
+                    <h3 class="subapp-section-title">Análise de Condutores Envolvidos em Casos de Perdidos e Achados</h3>
+                    <div class="filters-grid">
+                        <div><label for="paAnaliseCondutorDataInicio">Período De:</label><input type="date" id="paAnaliseCondutorDataInicio"></div>
+                        <div><label for="paAnaliseCondutorDataFim">Período Até:</label><input type="date" id="paAnaliseCondutorDataFim"></div>
+                        <button id="paExecutarAnaliseCondutoresBtn" class="action-button">Analisar Condutores</button>
+                    </div>
+                    <div id="loadingAnaliseCondutoresSpinner" class="loader hidden"></div>
+                    <div class="table-container mt-4">
+                        <table id="paAnaliseCondutoresTable">
+                            <thead>
+                                <tr>
+                                    <th>Condutor</th>
+                                    <th>Nº Casos Envolvido</th>
+                                    <th>Matrículas/Alocations dos Casos</th>
+                                    <th>% de Casos (vs Total Casos no Período)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paAnaliseCondutoresTableBody"></tbody>
+                        </table>
+                        <p id="paAnaliseCondutoresNenhumaMsg" class="content-placeholder">Nenhum dado para análise ou execute a análise.</p>
+                    </div>
+                </section>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/auth_global.js"></script>
+    <script src="js/perdidos_achados.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</body>
+</html>
