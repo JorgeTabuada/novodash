@@ -6,8 +6,8 @@
     <title>Ferramentas Multipark - Principal</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Carregar Supabase v2 diretamente -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/umd/supabase.min.js"></script>
+    <!-- Carregar Supabase v2 diretamente com URL exato conforme recomendado -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -87,9 +87,9 @@
         </footer>
     </div>
 
-    <!-- Scripts da aplicação -->
-    <script src="js/auth_global.js"></script>
-    <script src="js/app_principal.js"></script>
+    <!-- Scripts da aplicação com atributo defer -->
+    <script src="js/auth_global.js" defer></script>
+    <script src="js/app_principal.js" defer></script>
     <script>
         document.getElementById('currentYear').textContent = new Date().getFullYear();
     </script>
