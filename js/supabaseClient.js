@@ -13,8 +13,8 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 }
 
 // A variável global `supabase` é fornecida pela biblioteca carregada via CDN.
-// Esta linha cria a instância do cliente Supabase.
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Esta linha cria a instância do cliente Supabase e a torna globalmente acessível.
+window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Opcional: para tornar acessível globalmente via window, se necessário.
 // window.supabase = supabase;
