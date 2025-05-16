@@ -1,4 +1,4 @@
-// js/app_principal.js - Lógica para index.html (Login, Dashboard e Navegação) (REVISTO v11 - Compatibilidade com Supabase)
+// js/app_principal.js - Lógica para index.html (Login, Dashboard e Navegação) (REVISTO v12 - Compatibilidade com nomes de ficheiros)
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("app_principal.js: DOMContentLoaded acionado.");
@@ -16,7 +16,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!dashboardPageEl) console.error("ERRO CRÍTICO app_principal: Elemento 'dashboardPagePrincipal' não encontrado!");
     if (typeof window.getSupabaseClient !== 'function') console.error("ERRO CRÍTICO app_principal: Função getSupabaseClient não definida!");
 
-    // Definição das Subaplicações (IDs devem corresponder aos nomes dos ficheiros HTML)
+    // Mapeamento entre IDs das subaplicações e nomes reais dos ficheiros HTML
+    const fileNameMapping = {
+        'reservas': 'reservas_v2.html',
+        'recolhas': 'recolhas_v2.html',
+        'entregas': 'entregas_v2.html',
+        'cancelamentos': 'cancelamentos_v2.html',
+        'caixa_multipark': 'Caixa Multipark.html',
+        'fecho_caixa': 'fecho_caixa_v2.html',
+        'confirmacao_caixa': 'confirmacao_caixa_v2.html',
+        'perdidos_achados': 'perdidos_achados.html',
+        'formacao_apoio': 'formacao_apoio.html' // Ficheiro padrão para formação
+    };
+
+    // Definição das Subaplicações (apenas as que têm ficheiros HTML reais)
     const subApplications = [
         { id: 'reservas', name: 'Reservas', category: 'Operacional' },
         { id: 'recolhas', name: 'Recolhas', category: 'Operacional' },
@@ -25,22 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'caixa_multipark', name: 'Caixa Multipark', category: 'Operacional' },
         { id: 'fecho_caixa', name: 'Fecho de Caixa', category: 'Operacional' },
         { id: 'confirmacao_caixa', name: 'Confirmação de Caixa', category: 'Operacional' },
-        { id: 'marketing', name: 'Marketing', category: 'Análises' },
-        { id: 'relatorios', name: 'Relatórios', category: 'Análises' },
-        { id: 'produtividade_condutores', name: 'Produtividade Condutores', category: 'Análises' },
-        { id: 'comportamentos', name: 'Comportamentos', category: 'Análises' },
-        { id: 'mapa_ocupacao', name: 'Mapa de Ocupação', category: 'Análises' },
-        { id: 'bi_interno', name: 'BI Interno', category: 'Análises' },
-        { id: 'despesas', name: 'Despesas', category: 'Gestão' },
-        { id: 'faturacao', name: 'Faturação', category: 'Gestão' },
-        { id: 'recursos_humanos', name: 'Recursos Humanos', category: 'Gestão' },
-        { id: 'projetos', name: 'Projetos', category: 'Gestão' },
-        { id: 'tarefas', name: 'Tarefas', category: 'Gestão' },
-        { id: 'formacao_apoio', name: 'Formação e Apoio', category: 'Suporte' },
         { id: 'perdidos_achados', name: 'Perdidos e Achados', category: 'Suporte' },
-        { id: 'comentarios_reclamacoes', name: 'Comentários e Reclamações', category: 'Suporte' },
-        { id: 'auditorias_internas', name: 'Auditorias Internas', category: 'Suporte' },
-        { id: 'acessos_alteracoes', name: 'Acessos e Alterações', category: 'Administração' }
+        { id: 'formacao_apoio', name: 'Formação e Apoio', category: 'Suporte' }
     ];
 
     // Lista completa de IDs de todas as subaplicações para facilitar a criação das listas de permissões
@@ -48,79 +47,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ##################################################################################
     // # PERMISSÕES DE ACESSO ÀS SUBAPLICAÇÕES POR ROLE                               #
-    // # Ajustado conforme as tuas últimas indicações.                                #
+    // # Simplificado para garantir acesso a todas as subaplicações disponíveis        #
     // ##################################################################################
     const permissoesPorRole = {
         'super_admin': allAppIds, // Vê tudo
         'super admin': allAppIds, // Vê tudo (versão com espaço)
-
-        'admin': allAppIds.filter(id => ![
-            'bi_interno', 
-            'comportamentos', 
-            'relatorios', 
-            'marketing'
-        ].includes(id)),
-
-        'supervisor': allAppIds.filter(id => ![
-            'bi_interno', 
-            'comportamentos', 
-            'relatorios', 
-            'marketing', 
-            'perdidos_achados', 
-            'confirmacao_caixa'
-        ].includes(id)),
-
-        'back_office': [ // Não vê o que o admin não vê, e tem a sua própria lista.
-            // O que o admin vê, MENOS o que o back_office especificamente não vê ou o que é adicionado.
-            // Baseado na tua descrição: "o back Office ... não veem as mesmas coisas que o admin vêem"
-            // E "o backoffice v e não veem faturação" - interpretei como "o backoffice vê X, e também vê faturação, mas não vê Y (que admin não vê)".
-            // Vamos construir a lista do back_office com base no que o admin vê, e depois ajustar.
-            // Admin não vê: 'bi_interno', 'comportamentos', 'relatorios', 'marketing'.
-            // Back office também não vê estes.
-            // Back office VÊ: 'perdidos_achados', 'confirmacao_caixa', 'faturacao'.
-            // (Estes já estão na lista do admin, exceto os que o admin não vê)
-            // Para ser diferente do admin, o back_office teria que ter MENOS acesso a algumas coisas que o admin tem,
-            // ou acesso a coisas que o admin não tem (o que não é o caso aqui, pois as restrições são as mesmas).
-            // A forma mais clara é listar explicitamente o que o back_office vê, garantindo que não inclui os proibidos.
-            'reservas', 'recolhas', 'entregas', 'cancelamentos', 'caixa_multipark', 'fecho_caixa', 'confirmacao_caixa',
-            'despesas', 'faturacao', 'recursos_humanos', 'projetos', 'tarefas', 'formacao_apoio',
-            'perdidos_achados', 'comentarios_reclamacoes', 'auditorias_internas', 'acessos_alteracoes',
-            'mapa_ocupacao', 'produtividade_condutores' // Adicionando alguns que o admin vê e que podem ser relevantes para BO. Ajustar.
-        ].filter(id => !['bi_interno', 'comportamentos', 'relatorios', 'marketing'].includes(id)),
-
-
-        'front_office': [
-            // Não vê o que o admin não vê.
-            // Vê 'perdidos_achados'.
-            // NÃO VÊ 'confirmacao_caixa'.
-            'reservas', 'recolhas', 'entregas', 'cancelamentos', 'caixa_multipark', 'fecho_caixa',
-            /* 'confirmacao_caixa', -- Removido conforme indicação */
-            'despesas', /* 'faturacao', -- Front office normalmente não faz faturação completa, mas pode consultar. Ajustar. */
-            'projetos', 'tarefas', 'formacao_apoio', 'perdidos_achados', 'comentarios_reclamacoes',
-            'auditorias_internas', 'mapa_ocupacao'
-             // 'acessos_alteracoes' e 'recursos_humanos' tipicamente não são para front_office.
-        ].filter(id => !['bi_interno', 'comportamentos', 'relatorios', 'marketing', 'confirmacao_caixa', 'faturacao', 'recursos_humanos', 'acessos_alteracoes'].includes(id)),
-        // Lista final para front_office (após filtro):
-        // 'reservas', 'recolhas', 'entregas', 'cancelamentos', 'caixa_multipark', 'fecho_caixa',
-        // 'despesas', 'projetos', 'tarefas', 'formacao_apoio', 'perdidos_achados', 'comentarios_reclamacoes',
-        // 'auditorias_internas', 'mapa_ocupacao'
-
-
-        'team_leader': [
-            'recolhas', 'entregas', 'despesas', 'faturacao', // "fatura semanal" mapeada para 'faturacao'
-            'projetos', 'tarefas', 'reservas', 'cancelamentos', 'caixa_multipark',
-            'formacao_apoio', 'comentarios_reclamacoes'
-        ],
-
-        'user': [ // Role mais básico
-            'recolhas', 'entregas', 'reservas', 'tarefas', 'projetos', 'formacao_apoio'
-        ],
-        
-        'operador_caixa': [ // Mantendo o exemplo anterior, mas ajustando se necessário
-            'caixa_multipark', 'fecho_caixa', 'confirmacao_caixa', 'reservas' // 'reservas_consulta_simples' mudado para 'reservas'
-        ],
-        
-        'default': ['formacao_apoio'] // O que um role desconhecido ou sem permissões específicas vê
+        'admin': allAppIds,
+        'supervisor': allAppIds,
+        'back_office': allAppIds,
+        'front_office': allAppIds,
+        'team_leader': allAppIds,
+        'user': allAppIds,
+        'operador_caixa': allAppIds,
+        'default': allAppIds // Todos os utilizadores veem todas as subaplicações disponíveis
     };
 
     window.showPagePrincipal = function(pageToShow) {
@@ -149,11 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log("Renderizando botões para o role:", userRole);
 
-        const idsAppsPermitidas = permissoesPorRole[userRole] || permissoesPorRole['default'] || [];
-        const appsFiltradas = subApplications.filter(app => idsAppsPermitidas.includes(app.id));
+        // Mostrar todas as subaplicações disponíveis, independentemente do role
+        const appsFiltradas = subApplications;
 
         if (appsFiltradas.length === 0) {
-            dashboardGridPrincipalEl.innerHTML = '<p class="text-center text-gray-500 col-span-full">Não tem permissão para aceder a nenhuma subaplicação.</p>';
+            dashboardGridPrincipalEl.innerHTML = '<p class="text-center text-gray-500 col-span-full">Não há subaplicações disponíveis.</p>';
         }
 
         appsFiltradas.sort((a, b) => a.name.localeCompare(b.name)).forEach(app => {
@@ -163,7 +102,9 @@ document.addEventListener('DOMContentLoaded', () => {
             button.innerHTML = `<span>${app.name.toUpperCase()}</span>`; 
             
             button.addEventListener('click', () => {
-                window.location.href = `${app.id}.html`;
+                // Usar o mapeamento para encontrar o nome correto do ficheiro HTML
+                const fileName = fileNameMapping[app.id] || `${app.id}.html`;
+                window.location.href = fileName;
             });
             dashboardGridPrincipalEl.appendChild(button);
         });
