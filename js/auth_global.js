@@ -32,7 +32,7 @@ async function checkAuthStatus() {
         // Buscar perfil do utilizador da tabela 'profiles'
         const { data: userProfile, error: profileError } = await supabase
             .from('profiles')
-            .select('id, full_name, username, role, parque_associado_id, cidades_associadas, parques_associados_ids') // Adicionar mais campos se necessário para claims/lógica
+            .select('id, full_name, role, parque_associado_id, cidades_associadas, parques_associados_ids') // Removido username
             .eq('id', session.user.id)
             .single();
 
