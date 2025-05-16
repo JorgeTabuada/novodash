@@ -1,4 +1,4 @@
-// js/app_principal.js - Lógica para index.html (Login, Dashboard e Navegação) (REVISTO v10 - Permissões Ajustadas Conforme Indicação)
+// js/app_principal.js - Lógica para index.html (Login, Dashboard e Navegação) (REVISTO v11 - Compatibilidade com Supabase)
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("app_principal.js: DOMContentLoaded acionado.");
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!loginPageEl) console.error("ERRO CRÍTICO app_principal: Elemento 'loginPagePrincipal' não encontrado!");
     if (!dashboardPageEl) console.error("ERRO CRÍTICO app_principal: Elemento 'dashboardPagePrincipal' não encontrado!");
-    if (typeof supabase === 'undefined') console.error("ERRO CRÍTICO app_principal: Supabase client não definido!");
+    if (typeof window.getSupabaseClient !== 'function') console.error("ERRO CRÍTICO app_principal: Função getSupabaseClient não definida!");
 
     // Definição das Subaplicações (IDs devem corresponder aos nomes dos ficheiros HTML)
     const subApplications = [
@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ##################################################################################
     const permissoesPorRole = {
         'super_admin': allAppIds, // Vê tudo
+        'super admin': allAppIds, // Vê tudo (versão com espaço)
 
         'admin': allAppIds.filter(id => ![
             'bi_interno', 
@@ -143,8 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         dashboardGridPrincipalEl.innerHTML = ''; 
-        const userProfile = JSON.parse(localStorage.getItem('userProfile'));
-        const userRole = userProfile?.role;
+        const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        const userRole = userProfile?.role || 'default';
 
         console.log("Renderizando botões para o role:", userRole);
 
@@ -169,52 +170,87 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.updateDashboardHeader = async function() {
-        const userProfileData = JSON.parse(localStorage.getItem('userProfile'));
+        const userProfileData = JSON.parse(localStorage.getItem('userProfile') || '{}');
         
         let userName = 'Utilizador';
         if (userProfileData) {
-            userName = userProfileData.full_name || userProfileData.username || userProfileData.email?.split('@')[0];
+            userName = userProfileData.full_name || userProfileData.username || userProfileData.email?.split('@')[0] || 'Utilizador';
         }
         
         if (userNamePrincipalEl) userNamePrincipalEl.textContent = userName.toUpperCase();
 
         if (parkSelectorPrincipalEl) {
-            const { data: parques, error } = await supabase.from('parques').select('id_pk, nome_parque, cidade').eq('ativo', true).order('nome_parque');
-            if (error) {
-                console.error("Erro ao carregar parques para o seletor:", error);
-            } else if (parques) {
-                 parkSelectorPrincipalEl.innerHTML = ''; 
-                parques.forEach(parque => {
-                    const option = document.createElement('option');
-                    option.value = parque.id_pk; 
-                    option.textContent = `${parque.nome_parque.toUpperCase()} (${parque.cidade || 'N/A'})`;
-                    parkSelectorPrincipalEl.appendChild(option);
-                });
-            }
-
-            const storedParkId = localStorage.getItem('parqueSelecionadoMultiparkId');
-            const userAssociatedParkId = userProfileData?.parque_associado_id;
-
-            if (storedParkId && parkSelectorPrincipalEl.querySelector(`option[value="${storedParkId}"]`)) {
-                parkSelectorPrincipalEl.value = storedParkId;
-            } else if (userAssociatedParkId && parkSelectorPrincipalEl.querySelector(`option[value="${userAssociatedParkId}"]`)) {
-                parkSelectorPrincipalEl.value = userAssociatedParkId;
-                localStorage.setItem('parqueSelecionadoMultiparkId', userAssociatedParkId);
-            } else if (parkSelectorPrincipalEl.options.length > 0) {
-                parkSelectorPrincipalEl.value = parkSelectorPrincipalEl.options[0].value;
-                localStorage.setItem('parqueSelecionadoMultiparkId', parkSelectorPrincipalEl.options[0].value);
-            }
-            
-            const existingAllParksOption = parkSelectorPrincipalEl.querySelector('option[value="todos"]');
-            if (userProfileData?.role === 'super_admin') {
-                if (!existingAllParksOption) {
-                    const allParksOption = document.createElement('option');
-                    allParksOption.value = "todos"; 
-                    allParksOption.textContent = "TODOS OS PARQUES";
-                    parkSelectorPrincipalEl.appendChild(allParksOption); 
+            try {
+                const supabase = window.getSupabaseClient ? window.getSupabaseClient() : null;
+                if (!supabase) {
+                    console.error("updateDashboardHeader: Supabase client não disponível.");
+                    return;
                 }
-            } else {
-                if (existingAllParksOption) existingAllParksOption.remove();
+                
+                // Verificar se a tabela 'parques' existe
+                const { data: parques, error } = await supabase.from('parques').select('id_pk, nome_parque, cidade').eq('ativo', true).order('nome_parque');
+                
+                if (error) {
+                    console.error("Erro ao carregar parques para o seletor:", error);
+                    // Adicionar opção padrão se não conseguir carregar parques
+                    parkSelectorPrincipalEl.innerHTML = '';
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = "default";
+                    defaultOption.textContent = "PARQUE PADRÃO";
+                    parkSelectorPrincipalEl.appendChild(defaultOption);
+                } else if (parques && parques.length > 0) {
+                    parkSelectorPrincipalEl.innerHTML = ''; 
+                    parques.forEach(parque => {
+                        const option = document.createElement('option');
+                        option.value = parque.id_pk; 
+                        option.textContent = `${parque.nome_parque.toUpperCase()} (${parque.cidade || 'N/A'})`;
+                        parkSelectorPrincipalEl.appendChild(option);
+                    });
+                } else {
+                    // Nenhum parque encontrado ou tabela vazia
+                    parkSelectorPrincipalEl.innerHTML = '';
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = "default";
+                    defaultOption.textContent = "NENHUM PARQUE DISPONÍVEL";
+                    parkSelectorPrincipalEl.appendChild(defaultOption);
+                }
+
+                const storedParkId = localStorage.getItem('parqueSelecionadoMultiparkId');
+                const userAssociatedParkId = userProfileData?.parque_associado_id;
+
+                if (storedParkId && parkSelectorPrincipalEl.querySelector(`option[value="${storedParkId}"]`)) {
+                    parkSelectorPrincipalEl.value = storedParkId;
+                } else if (userAssociatedParkId && parkSelectorPrincipalEl.querySelector(`option[value="${userAssociatedParkId}"]`)) {
+                    parkSelectorPrincipalEl.value = userAssociatedParkId;
+                    localStorage.setItem('parqueSelecionadoMultiparkId', userAssociatedParkId);
+                } else if (parkSelectorPrincipalEl.options.length > 0) {
+                    parkSelectorPrincipalEl.value = parkSelectorPrincipalEl.options[0].value;
+                    localStorage.setItem('parqueSelecionadoMultiparkId', parkSelectorPrincipalEl.options[0].value);
+                }
+                
+                // Adicionar opção "TODOS OS PARQUES" para super_admin
+                const existingAllParksOption = parkSelectorPrincipalEl.querySelector('option[value="todos"]');
+                const isSuperAdmin = userProfileData?.role === 'super_admin' || userProfileData?.role === 'super admin';
+                
+                if (isSuperAdmin) {
+                    if (!existingAllParksOption) {
+                        const allParksOption = document.createElement('option');
+                        allParksOption.value = "todos"; 
+                        allParksOption.textContent = "TODOS OS PARQUES";
+                        parkSelectorPrincipalEl.appendChild(allParksOption); 
+                    }
+                } else {
+                    if (existingAllParksOption) existingAllParksOption.remove();
+                }
+            } catch (e) {
+                console.error("Erro ao atualizar seletor de parques:", e);
+                // Garantir que há pelo menos uma opção no seletor
+                if (parkSelectorPrincipalEl.options.length === 0) {
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = "default";
+                    defaultOption.textContent = "PARQUE PADRÃO";
+                    parkSelectorPrincipalEl.appendChild(defaultOption);
+                }
             }
         }
     }
@@ -288,14 +324,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    function attemptInit() {
-        if (typeof supabase !== 'undefined' && typeof supabase.auth !== 'undefined' && typeof window.checkAuthStatus === 'function') {
-            initPrincipalPage();
-        } else {
-            console.log("app_principal.js: Aguardando Supabase e auth_global.js...");
-            setTimeout(attemptInit, 200); 
-        }
-    }
-
-    attemptInit();
+    // Inicializar a página após um pequeno atraso para garantir que todos os scripts foram carregados
+    setTimeout(() => {
+        initPrincipalPage();
+    }, 100);
 });

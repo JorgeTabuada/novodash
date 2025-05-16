@@ -12,14 +12,53 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     // throw new Error(errorMessage); // Para parar a execução de scripts subsequentes
 }
 
-// A variável global `supabase` é fornecida pela biblioteca carregada via CDN.
-// Esta linha cria a instância do cliente Supabase e a torna globalmente acessível.
-window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// Opcional: para tornar acessível globalmente via window, se necessário.
-// window.supabase = supabase;
-
-console.log("Supabase client inicializado com as credenciais fornecidas.");
-if (!supabase) {
-    console.error("Falha ao inicializar o Supabase client. Verifique as credenciais e a inclusão da biblioteca Supabase no HTML.");
+// Função para inicializar o cliente Supabase de forma segura
+function initSupabaseClient() {
+    try {
+        // Verificar se a biblioteca Supabase foi carregada
+        if (typeof supabase === 'undefined') {
+            console.error("ERRO CRÍTICO: A biblioteca Supabase não foi carregada. Verifique a inclusão do script do CDN.");
+            return false;
+        }
+        
+        // Inicializar o cliente Supabase e torná-lo globalmente acessível
+        window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        console.log("Supabase client inicializado com sucesso.");
+        return true;
+    } catch (error) {
+        console.error("ERRO ao inicializar o Supabase client:", error);
+        return false;
+    }
 }
+
+// Tentar inicializar imediatamente
+const initSuccess = initSupabaseClient();
+
+// Verificar se a inicialização foi bem-sucedida
+if (!initSuccess || !window.supabase) {
+    console.error("Falha ao inicializar o Supabase client. Verifique as credenciais e a inclusão da biblioteca Supabase no HTML.");
+    
+    // Tentar novamente após um curto atraso (pode ajudar em casos de carregamento assíncrono)
+    setTimeout(() => {
+        if (typeof supabase !== 'undefined' && !window.supabase) {
+            console.log("Tentando inicializar o Supabase client novamente...");
+            initSupabaseClient();
+        }
+    }, 500);
+}
+
+// Expor uma função para verificar se o Supabase está disponível
+window.isSupabaseAvailable = function() {
+    return typeof window.supabase !== 'undefined' && window.supabase !== null;
+};
+
+// Expor uma função para obter o cliente Supabase de forma segura
+window.getSupabaseClient = function() {
+    if (!window.isSupabaseAvailable()) {
+        console.error("Tentativa de acesso ao Supabase client antes da inicialização.");
+        // Tentar inicializar novamente
+        initSupabaseClient();
+    }
+    return window.supabase;
+};
