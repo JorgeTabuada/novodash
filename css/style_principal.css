@@ -152,6 +152,7 @@ body {
     transition: background-color 0.2s;
     border: none;
     font-size: 0.875rem;
+    cursor: pointer;
 }
 
 .user-info-principal button#logoutButtonPrincipal:hover {
@@ -171,9 +172,9 @@ body {
 }
 
 .subapp-button-principal {
-    background-color: #0A2B5C; /* Azul corporativo para os botões */
-    color: #ffffff; /* Texto branco */
-    border: 1px solid transparent; /* Sem borda visível inicialmente */
+    background-color: #FFFFFF; /* Fundo branco para os botões */
+    color: #0A2B5C; /* Texto azul */
+    border: 1px solid #E5E7EB; /* Borda cinza clara */
     border-radius: 0.5rem; /* 8px */
     padding: 1.25rem 0.75rem; /* Padding interno */
     text-align: center;
@@ -191,7 +192,8 @@ body {
     line-height: 1.3;
 }
 .subapp-button-principal:hover {
-    background-color: #08224A; /* Azul um pouco mais escuro no hover */
+    background-color: #0A2B5C; /* Fundo azul no hover */
+    color: #FFFFFF; /* Texto branco no hover */
     transform: translateY(-2px); /* Efeito de elevação suave */
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }

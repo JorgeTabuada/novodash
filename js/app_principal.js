@@ -1,4 +1,4 @@
-// js/app_principal.js - Lógica para index.html (Login, Dashboard e Navegação) (REVISTO v12 - Compatibilidade com nomes de ficheiros)
+// js/app_principal.js - Lógica para index.html (Login, Dashboard e Navegação) (REVISTO v13 - Restauração de layout e funcionalidades)
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("app_principal.js: DOMContentLoaded acionado.");
@@ -26,10 +26,25 @@ document.addEventListener('DOMContentLoaded', () => {
         'fecho_caixa': 'fecho_caixa_v2.html',
         'confirmacao_caixa': 'confirmacao_caixa_v2.html',
         'perdidos_achados': 'perdidos_achados.html',
-        'formacao_apoio': 'formacao_apoio.html' // Ficheiro padrão para formação
+        'formacao_apoio': 'formacao_apoio.html',
+        'gestao_utilizadores': 'gestao_utilizadores.html',
+        'gestao_parques': 'gestao_parques.html',
+        'relatorios': 'relatorios.html',
+        'estatisticas': 'estatisticas.html',
+        'configuracoes': 'configuracoes.html',
+        'manutencao': 'manutencao.html',
+        'gestao_veiculos': 'gestao_veiculos.html',
+        'gestao_clientes': 'gestao_clientes.html',
+        'gestao_contratos': 'gestao_contratos.html',
+        'gestao_faturas': 'gestao_faturas.html',
+        'gestao_pagamentos': 'gestao_pagamentos.html',
+        'gestao_reclamacoes': 'gestao_reclamacoes.html',
+        'gestao_eventos': 'gestao_eventos.html',
+        'gestao_promocoes': 'gestao_promocoes.html',
+        'gestao_tarifas': 'gestao_tarifas.html'
     };
 
-    // Definição das Subaplicações (apenas as que têm ficheiros HTML reais)
+    // Definição das Subaplicações (lista completa conforme documento original)
     const subApplications = [
         { id: 'reservas', name: 'Reservas', category: 'Operacional' },
         { id: 'recolhas', name: 'Recolhas', category: 'Operacional' },
@@ -39,7 +54,22 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'fecho_caixa', name: 'Fecho de Caixa', category: 'Operacional' },
         { id: 'confirmacao_caixa', name: 'Confirmação de Caixa', category: 'Operacional' },
         { id: 'perdidos_achados', name: 'Perdidos e Achados', category: 'Suporte' },
-        { id: 'formacao_apoio', name: 'Formação e Apoio', category: 'Suporte' }
+        { id: 'formacao_apoio', name: 'Formação e Apoio', category: 'Suporte' },
+        { id: 'gestao_utilizadores', name: 'Gestão de Utilizadores', category: 'Administração' },
+        { id: 'gestao_parques', name: 'Gestão de Parques', category: 'Administração' },
+        { id: 'relatorios', name: 'Relatórios', category: 'Análise' },
+        { id: 'estatisticas', name: 'Estatísticas', category: 'Análise' },
+        { id: 'configuracoes', name: 'Configurações', category: 'Sistema' },
+        { id: 'manutencao', name: 'Manutenção', category: 'Sistema' },
+        { id: 'gestao_veiculos', name: 'Gestão de Veículos', category: 'Operacional' },
+        { id: 'gestao_clientes', name: 'Gestão de Clientes', category: 'Operacional' },
+        { id: 'gestao_contratos', name: 'Gestão de Contratos', category: 'Operacional' },
+        { id: 'gestao_faturas', name: 'Gestão de Faturas', category: 'Financeiro' },
+        { id: 'gestao_pagamentos', name: 'Gestão de Pagamentos', category: 'Financeiro' },
+        { id: 'gestao_reclamacoes', name: 'Gestão de Reclamações', category: 'Suporte' },
+        { id: 'gestao_eventos', name: 'Gestão de Eventos', category: 'Operacional' },
+        { id: 'gestao_promocoes', name: 'Gestão de Promoções', category: 'Marketing' },
+        { id: 'gestao_tarifas', name: 'Gestão de Tarifas', category: 'Financeiro' }
     ];
 
     // Lista completa de IDs de todas as subaplicações para facilitar a criação das listas de permissões
@@ -230,6 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (logoutButtonEl) {
         logoutButtonEl.addEventListener('click', async () => {
+            console.log("Botão de logout clicado");
             if (typeof window.handleLogoutGlobal === 'function') { 
                 await window.handleLogoutGlobal();
             } else {
