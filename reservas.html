@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservas - Ferramentas Multipark</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Importar o cliente Supabase centralizado -->
+    <script src="js/supabaseClient.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; 
+            color: #333;
+        }
+        .subapp-page { 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+        }
+        .subapp-content-container { 
+            background-color: #f0f2f5;
+            padding: 1rem;
+            border-radius: 0.5rem; 
+            width: 100%;
+            max-width: 1200px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            margin-top: 1rem;
+            margin-bottom: 2rem;
+        }
+        .app-logo-styled { 
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: #0A2B5C; 
+            margin-bottom: 1.5rem;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 0.5px;
+            width: 100%; 
+        }
+        .app-logo-styled .logo-p-icon { 
+            background-color: #0A2B5C;
+            color: #fff;
+            padding: 4px 10px;
+            margin-right: 6px;
+            border-radius: 4px;
+            font-family: 'Arial Black', Gadget, sans-serif;
+            font-size: 1.9rem;
+            line-height: 1;
+        }
+        .subapp-header { 
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background-color: #fff;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+        .subapp-title { 
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #0A2B5C;
+        }
+        .subapp-section { 
+            width: 100%;
+            background-color: #fff;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+        .subapp-section-title { 
+            font-size: 1.2rem; 
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        .filters-grid, .actions-container, .search-container { 
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: flex-end;
+        }
+        .filters-grid > div, .search-container > div { 
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1; 
+        }
+        .filters-grid label, .search-container label { 
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+            color: #555;
+        }
+        .filters-grid input[type="text"],
+        .filters-grid input[type="date"],
+        .filters-grid input[type="datetime-local"],
+        .filters-grid select,
+        .search-container input[type="text"],
+        input[type="file"].file-input-styled { 
+            padding: 0.6rem; 
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+            background-color: #fff; /* Adicionado para consistência */
+        }
+        /* Estilo específico para o input de ficheiro para que pareça um botão */
+        input[type="file"].file-input-styled {
+            cursor: pointer;
+        }
+
+        .action-button { 
+            background-color: #0d6efd; 
+            color: white;
+            font-weight: 500;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .action-button:hover {
+            background-color: #0b5ed7; 
+        }
+        .action-button.secondary { 
+            background-color: #6c757d; 
+        }
+        .action-button.secondary:hover {
+            background-color: #5a6268;
+        }
+        .table-container { overflow-x: auto; margin-top: 1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 0.9em; }
+        th { background-color: #f8f9fa; font-weight: 600; color: #495057; } 
+        .actions-cell button { margin-right: 5px; padding: 5px 10px; font-size:0.8em; } 
+
+        .stats-grid { 
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .stat-card { 
+            background-color: #e9f2ff; 
+            padding: 1.25rem; 
+            border-radius: 0.375rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #0d6efd; 
+        }
+        .stat-card h4 { 
+            font-weight: 600;
+            color: #1e40af; 
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem; 
+        }
+        .stat-card p, .stat-card div.stat-value { 
+            font-size: 1.75rem; 
+            font-weight: 700;
+            color: #1d4ed8; 
+        }
+        .stat-card div.stat-subtext { 
+            font-size: 0.85rem;
+            font-weight: normal;
+            color: #555;
+        }
+        .content-placeholder { 
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #ddd;
+            border-radius: 0.25rem;
+            color: #777;
+            text-align: center;
+            padding: 1rem;
+            background-color: #f9f9f9;
+        }
+        .form-modal-backdrop, .log-modal-backdrop { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6); display: flex;
+            align-items: center; justify-content: center; z-index: 1050;
+            opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .form-modal-backdrop.active, .log-modal-backdrop.active {
+            opacity: 1; visibility: visible;
+        }
+        .form-modal-dialog, .log-modal-dialog { 
+            background-color: white; padding: 1.5rem; border-radius: 0.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 100%; max-width: 700px; 
+            transform: translateY(-20px); transition: transform 0.3s ease;
+        }
+        .form-modal-backdrop.active .form-modal-dialog,
+        .log-modal-backdrop.active .log-modal-dialog {
+            transform: translateY(0);
+        }
+        .form-modal-header, .log-modal-header { 
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 0.75rem; margin-bottom: 1rem; border-bottom: 1px solid #eee;
+        }
+        .form-modal-title, .log-modal-title { font-size: 1.25rem; font-weight: 600; }
+        .form-modal-body, .log-modal-body { max-height: 70vh; overflow-y: auto; padding-right: 10px; }
+        .form-modal-body .form-group { margin-bottom: 1rem; }
+        .form-modal-body .form-group label { display: block; margin-bottom: 0.3rem; font-size: 0.875rem; font-weight:500; }
+        .form-modal-body .form-group input,
+        .form-modal-body .form-group select,
+        .form-modal-body .form-group textarea {
+            width: 100%; padding: 0.6rem; border: 1px solid #ccc; border-radius: 0.25rem; font-size: 0.9rem;
+        }
+        .form-modal-footer, .log-modal-footer { 
+            padding-top: 1rem; margin-top: 1rem; border-top: 1px solid #eee;
+            display: flex; justify-content: flex-end; gap: 0.75rem;
+        }
+        .hidden { display: none !important; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #0d6efd; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div id="reservasPage" class="subapp-page">
+        <div class="subapp-content-container">
+            <div class="app-logo-styled">
+                <span class="logo-p-icon">P</span><span class="logo-text-multipark">MULTIPARK</span>
+            </div>
+
+            <header class="subapp-header">
+                <h2 class="subapp-title">Gestão de Reservas</h2>
+                <button id="voltarDashboardBtnReservas" class="action-button secondary">Voltar ao Dashboard</button>
+            </header>
+
+            <section class="subapp-section">
+                <h3 class="subapp-section-title">Importar Reservas Iniciais</h3>
+                <div class="actions-container items-center"> <div class="flex-grow"> <label for="importReservasFile" class="sr-only">Carregar ficheiro de reservas (Excel/CSV):</label>
+                        <input type="file" id="importReservasFile" class="file-input-styled block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2.5" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                    </div>
+                    <button id="resProcessarImportacaoBtn" class="action-button whitespace-nowrap">Processar Ficheiro</button> </div>
+                <div id="loadingImportSpinner" class="loader hidden"></div>
+                <div id="importacaoStatus" class="mt-4 text-sm"></div>
+            </section>
+
+            <section class="subapp-section">
+                <h3 class="subapp-section-title">Dashboard de Análise de Reservas</h3>
+                <div class="filters-grid mb-6">
+                    <div>
+                        <label for="resDashboardFiltroDataInicio">Data Início:</label>
+                        <input type="date" id="resDashboardFiltroDataInicio">
+                    </div>
+                    <div>
+                        <label for="resDashboardFiltroDataFim">Data Fim:</label>
+                        <input type="date" id="resDashboardFiltroDataFim">
+                    </div>
+                    <div>
+                        <label for="resDashboardFiltroPeriodo">Período Rápido:</label>
+                        <select id="resDashboardFiltroPeriodo">
+                            <option value="hoje">Hoje</option>
+                            <option value="semana_atual">Esta Semana</option>
+                            <option value="mes_atual" selected>Este Mês</option>
+                            <option value="ultimos_30dias">Últimos 30 Dias</option>
+                            <option value="este_ano">Este Ano</option>
+                            <option value="personalizado">Personalizado</option>
+                        </select>
+                    </div>
+                    <button id="resAplicarFiltrosDashboardBtn" class="action-button">Analisar</button>
+                </div>
+
+                <div id="reservasDashboardStats" class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Total de Reservas</h4>
+                        <p id="statTotalReservas" class="stat-value">0</p>
+                        <div id="statTotalReservasPeriodo" class="stat-subtext">N/A</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Valor Total Estimado</h4>
+                        <p id="statValorTotalReservas" class="stat-value">0,00 €</p>
+                         <div id="statValorTotalReservasPeriodo" class="stat-subtext">N/A</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Reservas por Campanha</h4>
+                        <div id="statReservasCampanha" class="stat-subtext">Calculando...</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Reservas por Dia da Semana</h4>
+                        <div id="statReservasDiaSemana" class="stat-subtext">Calculando...</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div class="subapp-section p-4 rounded-lg shadow">
+                        <h4 class="subapp-section-title text-center">Reservas por Hora (<span id="resDashboardDataHoraDisplay">selecione um dia</span>)</h4>
+                        <input type="date" id="resDashboardDataHoraInput" class="w-full p-2 border rounded mb-2">
+                        <canvas id="chartReservasPorHora" height="200"></canvas>
+                        <div id="statReservasHoraConteudo" class="text-sm text-center mt-2">Selecione um dia para ver as contagens.</div>
+                    </div>
+                    <div class="subapp-section p-4 rounded-lg shadow">
+                         <h4 class="subapp-section-title text-center">Distribuição de Reservas Mensal</h4>
+                        <canvas id="chartReservasMensal" height="200"></canvas>
+                    </div>
+                </div>
+
+                <div class="subapp-section mt-6">
+                    <h4 class="subapp-section-title">Calendário de Reservas</h4>
+                    <div id="calendarioReservasContainer" class="content-placeholder">
+                        <p>A vista de calendário aparecerá aqui. (Requer integração de biblioteca JS)</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="subapp-section">
+                <h3 class="subapp-section-title">Procurar e Modificar Reserva</h3>
+                <div class="search-container">
+                    <div>
+                        <label for="resSearchTerm">Termo de Pesquisa (ID, Matrícula, Alocation, Cliente):</label>
+                        <input type="text" id="resSearchTerm" placeholder="Insira para pesquisar...">
+                    </div>
+                    <button id="resSearchBtn" class="action-button">Pesquisar</button>
+                </div>
+            </section>
+
+            <section class="subapp-section">
+                <h3 class="subapp-section-title">Lista de Reservas</h3>
+                <div class="flex justify-between mb-4">
+                    <button id="resAbrirModalNovaBtn" class="action-button">Nova Reserva</button>
+                    <button id="resExportarBtn" class="action-button secondary">Exportar Lista</button>
+                </div>
+                <div class="filters-grid">
+                    <div>
+                        <label for="resFiltroClienteLista">Cliente:</label>
+                        <input type="text" id="resFiltroClienteLista" placeholder="Nome do cliente...">
+                    </div>
+                    <div>
+                        <label for="resFiltroMatriculaLista">Matrícula:</label>
+                        <input type="text" id="resFiltroMatriculaLista" placeholder="Matrícula...">
+                    </div>
+                    <div>
+                        <label for="resFiltroDataEntradaLista">Data Entrada (após):</label>
+                        <input type="date" id="resFiltroDataEntradaLista">
+                    </div>
+                    <div>
+                        <label for="resFiltroEstadoLista">Estado:</label>
+                        <select id="resFiltroEstadoLista">
+                            <option value="">Todos</option>
+                            <option value="Confirmada">Confirmada</option>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Cancelada">Cancelada</option>
+                            <option value="Concluída">Concluída</option>
+                            <option value="Em Curso">Em Curso</option>
+                        </select>
+                    </div>
+                    <button id="resAplicarFiltrosListaBtn" class="action-button">Aplicar Filtros</button>
+                </div>
+                <div id="loadingTableSpinner" class="loader hidden"></div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Data Reserva</th>
+                                <th>Cliente</th>
+                                <th>Matrícula</th>
+                                <th>Alocation</th>
+                                <th>Check-in</th>
+                                <th>Check-out</th>
+                                <th>Parque</th>
+                                <th>Valor</th>
+                                <th>Estado</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reservasTableBody">
+                            <!-- Dados serão inseridos dinamicamente pelo JavaScript -->
+                        </tbody>
+                    </table>
+                    <p id="reservasNenhumaMsg" class="text-center py-4 text-gray-500 hidden">Nenhuma reserva encontrada.</p>
+                </div>
+                <div id="reservasPaginacao" class="flex justify-center mt-4 space-x-1">
+                    <!-- Paginação será inserida dinamicamente pelo JavaScript -->
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Modal para Criar/Editar Reserva -->
+    <div id="reservaFormModal" class="form-modal-backdrop">
+        <div class="form-modal-dialog">
+            <div class="form-modal-header">
+                <h3 id="reservaFormModalTitle" class="form-modal-title">Nova Reserva</h3>
+                <button type="button" class="resFecharModalBtn text-gray-500 hover:text-gray-700">&times;</button>
+            </div>
+            <div class="form-modal-body">
+                <form id="reservaForm">
+                    <input type="hidden" id="reservaFormId">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="reservaFormBookingId">Booking ID:</label>
+                            <input type="text" id="reservaFormBookingId" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reservaFormDataReserva">Data da Reserva:</label>
+                            <input type="datetime-local" id="reservaFormDataReserva" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reservaFormNomeCliente">Nome do Cliente:</label>
+                            <input type="text" id="reservaFormNomeCliente" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reservaFormEmailCliente">Email do Cliente:</label>
+                            <input type="email" id="reservaFormEmailCliente">
+                        </div>
+                        <div class="form-group">
+                            <label for="reservaFormTelefoneCliente">Telefone do Cliente:</label>
+                            <input type="tel" id="reservaFormTelefoneCliente">
+                        </div>
+                        <div class="form-group">
+                            <label for="reservaFormMatricula">Matrícula:</label>
+                            <input type="text" id="reservaFormMatricula" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reservaFormAlocation">Alocation:</label>
+                            <input type="text" id="reservaFormAlocation">
+                        </div>
+                        <div class="form-group">
+                            <label for="reservaFormDataEntrada">Data de Entrada:</label>
+                            <input type="datetime-local" id="reservaFormDataEntrada" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reservaFormDataSaida">Data de Saída:</label>
+                            <input type="datetime-local" id="reservaFormDataSaida" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reservaFormParque">Parque:</label>
+                            <select id="reservaFormParque" required>
+                                <!-- Opções serão carregadas dinamicamente -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="reservaFormCampanha">Campanha:</label>
+                            <input type="text" id="reservaFormCampanha">
+                        </div>
+                        <div class="form-group">
+                            <label for="reservaFormValor">Valor Total:</label>
+                            <input type="number" id="reservaFormValor" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="reservaFormEstado">Estado:</label>
+                            <select id="reservaFormEstado" required>
+                                <option value="Confirmada">Confirmada</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Cancelada">Cancelada</option>
+                                <option value="Concluída">Concluída</option>
+                                <option value="Em Curso">Em Curso</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group mt-4">
+                        <label for="reservaFormObservacoes">Observações:</label>
+                        <textarea id="reservaFormObservacoes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="form-modal-footer">
+                <button type="button" class="resFecharModalBtn action-button secondary">Cancelar</button>
+                <button type="button" id="reservaFormSalvarBtn" class="action-button">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Histórico de Reserva -->
+    <div id="reservaLogModal" class="log-modal-backdrop">
+        <div class="log-modal-dialog">
+            <div class="log-modal-header">
+                <h3 class="log-modal-title">Histórico da Reserva <span id="logReservaBookingId"></span></h3>
+                <button type="button" class="resFecharLogModalBtn text-gray-500 hover:text-gray-700">&times;</button>
+            </div>
+            <div class="log-modal-body">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Utilizador</th>
+                                <th>Ação</th>
+                                <th>Detalhes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reservaLogTableBody">
+                            <!-- Dados serão inseridos dinamicamente pelo JavaScript -->
+                        </tbody>
+                    </table>
+                    <p id="reservaLogNenhumaMsg" class="text-center py-4 text-gray-500 hidden">Nenhum registo de histórico encontrado.</p>
+                </div>
+            </div>
+            <div class="log-modal-footer">
+                <button type="button" class="resFecharLogModalBtn action-button">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/reservas.js"></script>
+</body>
+</html>

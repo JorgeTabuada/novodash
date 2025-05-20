@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Mapeamento entre IDs das subaplicações e nomes reais dos ficheiros HTML
     const fileNameMapping = {
-        'reservas': 'reservas_v2.html',
+        'reservas': 'reservas.html',
         'recolhas': 'recolhas_v2.html',
         'entregas': 'entregas_v2.html',
         'cancelamentos': 'cancelamentos_v2.html',
