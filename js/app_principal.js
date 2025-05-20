@@ -1,4 +1,4 @@
-// js/app_principal.js - Lógica para index.html (Login, Dashboard e Navegação) (REVISTO v13 - Restauração de layout e funcionalidades)
+// js/app_principal.js - Lógica para index.html (Login, Dashboard e Navegação) (REVISTO v14 - Correção do seletor de parques)
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("app_principal.js: DOMContentLoaded acionado.");
@@ -118,26 +118,292 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log("Renderizando botões para o role:", userRole);
 
-        // Mostrar todas as subaplicações disponíveis, independentemente do role
-        const appsFiltradas = subApplications;
+        // Organizar aplicações por categoria
+        const categorias = {
+            'Operacional': [],
+            'Gestão': [],
+            'Administração e Suporte': [],
+            'Análises': []
+        };
 
-        if (appsFiltradas.length === 0) {
-            dashboardGridPrincipalEl.innerHTML = '<p class="text-center text-gray-500 col-span-full">Não há subaplicações disponíveis.</p>';
-        }
+        // Mapear categorias originais para as categorias do layout
+        const mapeamentoCategorias = {
+            'Operacional': 'Operacional',
+            'Suporte': 'Administração e Suporte',
+            'Administração': 'Administração e Suporte',
+            'Análise': 'Análises',
+            'Sistema': 'Administração e Suporte',
+            'Financeiro': 'Gestão',
+            'Marketing': 'Gestão'
+        };
 
-        appsFiltradas.sort((a, b) => a.name.localeCompare(b.name)).forEach(app => {
-            const button = document.createElement('button');
-            button.className = 'subapp-button-principal';
-            button.dataset.appId = app.id;
-            button.innerHTML = `<span>${app.name.toUpperCase()}</span>`; 
+        // Distribuir aplicações nas categorias
+        subApplications.forEach(app => {
+            const categoriaOriginal = app.category;
+            const categoriaFinal = mapeamentoCategorias[categoriaOriginal] || 'Operacional';
             
-            button.addEventListener('click', () => {
-                // Usar o mapeamento para encontrar o nome correto do ficheiro HTML
-                const fileName = fileNameMapping[app.id] || `${app.id}.html`;
-                window.location.href = fileName;
-            });
-            dashboardGridPrincipalEl.appendChild(button);
+            if (categorias[categoriaFinal]) {
+                categorias[categoriaFinal].push(app);
+            } else {
+                categorias['Operacional'].push(app);
+            }
         });
+
+        // Criar seções para cada categoria
+        Object.keys(categorias).forEach(categoria => {
+            const apps = categorias[categoria];
+            if (apps.length === 0) return;
+
+            // Criar cabeçalho da categoria
+            const categoriaHeader = document.createElement('div');
+            categoriaHeader.className = 'categoria-header';
+            categoriaHeader.style.width = '100%';
+            categoriaHeader.style.borderBottom = '2px solid #0A2B5C';
+            categoriaHeader.style.marginBottom = '1rem';
+            categoriaHeader.style.paddingBottom = '0.5rem';
+            categoriaHeader.style.fontSize = '1.25rem';
+            categoriaHeader.style.fontWeight = 'bold';
+            categoriaHeader.style.color = '#0A2B5C';
+            categoriaHeader.textContent = categoria;
+            dashboardGridPrincipalEl.appendChild(categoriaHeader);
+
+            // Criar container para os botões desta categoria
+            const categoriaBotoes = document.createElement('div');
+            categoriaBotoes.className = 'categoria-botoes';
+            categoriaBotoes.style.display = 'grid';
+            categoriaBotoes.style.gridTemplateColumns = 'repeat(auto-fill, minmax(160px, 1fr))';
+            categoriaBotoes.style.gap = '1rem';
+            categoriaBotoes.style.marginBottom = '2rem';
+            categoriaBotoes.style.width = '100%';
+
+            // Adicionar botões da categoria
+            apps.sort((a, b) => a.name.localeCompare(b.name)).forEach(app => {
+                const button = document.createElement('button');
+                button.className = 'subapp-button-principal';
+                button.dataset.appId = app.id;
+                button.innerHTML = `<span>${app.name.toUpperCase()}</span>`; 
+                
+                button.addEventListener('click', () => {
+                    // Usar o mapeamento para encontrar o nome correto do ficheiro HTML
+                    const fileName = fileNameMapping[app.id] || `${app.id}.html`;
+                    window.location.href = fileName;
+                });
+                categoriaBotoes.appendChild(button);
+            });
+
+            dashboardGridPrincipalEl.appendChild(categoriaBotoes);
+        });
+    }
+
+    // Função para carregar os parques do Supabase com múltiplas tentativas e fallback
+    async function carregarParques() {
+        try {
+            console.log("Iniciando carregamento de parques...");
+            
+            // Verificar se o cliente Supabase está disponível
+            if (!window.getSupabaseClient) {
+                console.error("Cliente Supabase não disponível");
+                return;
+            }
+            
+            const supabase = window.getSupabaseClient();
+            if (!supabase) {
+                console.error("Falha ao obter cliente Supabase");
+                return;
+            }
+            
+            // Obter o seletor de parques
+            const parkSelector = document.getElementById('parkSelectorPrincipal');
+            if (!parkSelector) {
+                console.error("Seletor de parques não encontrado");
+                return;
+            }
+            
+            // Limpar opções existentes
+            parkSelector.innerHTML = '';
+            
+            // Adicionar opção de carregamento
+            const loadingOption = document.createElement('option');
+            loadingOption.textContent = 'Carregando parques...';
+            parkSelector.appendChild(loadingOption);
+            
+            // Tentativa 1: Buscar parques da tabela 'parques' com campos id_pk, nome_parque, cidade
+            let { data: parques, error } = await supabase
+                .from('parques')
+                .select('id_pk, nome_parque, cidade')
+                .eq('ativo', true)
+                .order('nome_parque');
+            
+            if (error || !parques || parques.length === 0) {
+                console.log("Tentativa 1 falhou, tentando estrutura alternativa...");
+                
+                // Tentativa 2: Buscar parques da tabela 'parques' com campos id, nome, cidade
+                ({ data: parques, error } = await supabase
+                    .from('parques')
+                    .select('id, nome, cidade')
+                    .order('nome'));
+                
+                if (error || !parques || parques.length === 0) {
+                    console.log("Tentativa 2 falhou, tentando tabela alternativa...");
+                    
+                    // Tentativa 3: Buscar parques da tabela 'parks'
+                    ({ data: parques, error } = await supabase
+                        .from('parks')
+                        .select('id, name, city')
+                        .order('name'));
+                    
+                    if (error || !parques || parques.length === 0) {
+                        console.log("Todas as tentativas de busca falharam, usando fallback manual");
+                        
+                        // Fallback: Adicionar parques manualmente
+                        parkSelector.innerHTML = '';
+                        
+                        const cidadesParques = [
+                            { cidade: 'Lisboa', parques: ['Airpark Lisboa', 'Redpark Lisboa', 'Skypark Lisboa'] },
+                            { cidade: 'Porto', parques: ['Airpark Porto', 'Redpark Porto', 'Skypark Porto'] },
+                            { cidade: 'Faro', parques: ['Airpark Faro', 'Redpark Faro', 'Skypark Faro'] }
+                        ];
+                        
+                        cidadesParques.forEach(cp => {
+                            const optgroup = document.createElement('optgroup');
+                            optgroup.label = cp.cidade;
+                            
+                            cp.parques.forEach((parque, index) => {
+                                const option = document.createElement('option');
+                                option.value = `${cp.cidade.toLowerCase()}_${index}`;
+                                option.textContent = parque;
+                                optgroup.appendChild(option);
+                            });
+                            
+                            parkSelector.appendChild(optgroup);
+                        });
+                        
+                        return;
+                    } else {
+                        // Adaptar dados da tabela 'parks'
+                        parques = parques.map(p => ({
+                            id: p.id,
+                            nome: p.name,
+                            cidade: p.city
+                        }));
+                    }
+                } else {
+                    // Adaptar dados da tabela 'parques' com campos id, nome, cidade
+                    parques = parques.map(p => ({
+                        id: p.id,
+                        nome: p.nome,
+                        cidade: p.cidade
+                    }));
+                }
+            } else {
+                // Adaptar dados da tabela 'parques' com campos id_pk, nome_parque, cidade
+                parques = parques.map(p => ({
+                    id: p.id_pk,
+                    nome: p.nome_parque,
+                    cidade: p.cidade
+                }));
+            }
+            
+            // Renderizar parques no seletor
+            if (parques && parques.length > 0) {
+                renderizarParques(parques);
+            } else {
+                console.warn("Nenhum parque encontrado na base de dados");
+                
+                // Adicionar parques manualmente como fallback
+                parkSelector.innerHTML = '';
+                
+                const cidadesParques = [
+                    { cidade: 'Lisboa', parques: ['Airpark Lisboa', 'Redpark Lisboa', 'Skypark Lisboa'] },
+                    { cidade: 'Porto', parques: ['Airpark Porto', 'Redpark Porto', 'Skypark Porto'] },
+                    { cidade: 'Faro', parques: ['Airpark Faro', 'Redpark Faro', 'Skypark Faro'] }
+                ];
+                
+                cidadesParques.forEach(cp => {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = cp.cidade;
+                    
+                    cp.parques.forEach((parque, index) => {
+                        const option = document.createElement('option');
+                        option.value = `${cp.cidade.toLowerCase()}_${index}`;
+                        option.textContent = parque;
+                        optgroup.appendChild(option);
+                    });
+                    
+                    parkSelector.appendChild(optgroup);
+                });
+            }
+        } catch (error) {
+            console.error("Erro ao carregar parques:", error);
+            
+            // Adicionar opção de erro
+            const parkSelector = document.getElementById('parkSelectorPrincipal');
+            if (parkSelector) {
+                parkSelector.innerHTML = '';
+                const errorOption = document.createElement('option');
+                errorOption.textContent = 'Erro ao carregar parques';
+                parkSelector.appendChild(errorOption);
+            }
+        }
+    }
+
+    // Função para renderizar os parques no seletor
+    function renderizarParques(parques) {
+        const parkSelector = document.getElementById('parkSelectorPrincipal');
+        if (!parkSelector) return;
+        
+        // Limpar opções existentes
+        parkSelector.innerHTML = '';
+        
+        // Agrupar parques por cidade
+        const parquesPorCidade = {};
+        parques.forEach(parque => {
+            const cidade = parque.cidade || 'Sem Cidade';
+            if (!parquesPorCidade[cidade]) {
+                parquesPorCidade[cidade] = [];
+            }
+            parquesPorCidade[cidade].push(parque);
+        });
+        
+        // Adicionar parques agrupados por cidade
+        Object.keys(parquesPorCidade).forEach(cidade => {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = cidade;
+            
+            parquesPorCidade[cidade].forEach(parque => {
+                const option = document.createElement('option');
+                option.value = parque.id;
+                option.textContent = parque.nome;
+                optgroup.appendChild(option);
+            });
+            
+            parkSelector.appendChild(optgroup);
+        });
+        
+        // Adicionar opção "TODOS OS PARQUES" para super_admin
+        const userProfileData = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        const isSuperAdmin = userProfileData?.role === 'super_admin' || userProfileData?.role === 'super admin';
+        
+        if (isSuperAdmin) {
+            const allParksOption = document.createElement('option');
+            allParksOption.value = "todos"; 
+            allParksOption.textContent = "TODOS OS PARQUES";
+            parkSelector.appendChild(allParksOption);
+        }
+        
+        // Selecionar parque armazenado ou primeiro disponível
+        const storedParkId = localStorage.getItem('parqueSelecionadoMultiparkId');
+        const userAssociatedParkId = userProfileData?.parque_associado_id;
+
+        if (storedParkId && parkSelector.querySelector(`option[value="${storedParkId}"]`)) {
+            parkSelector.value = storedParkId;
+        } else if (userAssociatedParkId && parkSelector.querySelector(`option[value="${userAssociatedParkId}"]`)) {
+            parkSelector.value = userAssociatedParkId;
+            localStorage.setItem('parqueSelecionadoMultiparkId', userAssociatedParkId);
+        } else if (parkSelector.options.length > 0) {
+            parkSelector.value = parkSelector.options[0].value;
+            localStorage.setItem('parqueSelecionadoMultiparkId', parkSelector.options[0].value);
+        }
     }
 
     window.updateDashboardHeader = async function() {
@@ -151,78 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userNamePrincipalEl) userNamePrincipalEl.textContent = userName.toUpperCase();
 
         if (parkSelectorPrincipalEl) {
-            try {
-                const supabase = window.getSupabaseClient ? window.getSupabaseClient() : null;
-                if (!supabase) {
-                    console.error("updateDashboardHeader: Supabase client não disponível.");
-                    return;
-                }
-                
-                // Verificar se a tabela 'parques' existe
-                const { data: parques, error } = await supabase.from('parques').select('id_pk, nome_parque, cidade').eq('ativo', true).order('nome_parque');
-                
-                if (error) {
-                    console.error("Erro ao carregar parques para o seletor:", error);
-                    // Adicionar opção padrão se não conseguir carregar parques
-                    parkSelectorPrincipalEl.innerHTML = '';
-                    const defaultOption = document.createElement('option');
-                    defaultOption.value = "default";
-                    defaultOption.textContent = "PARQUE PADRÃO";
-                    parkSelectorPrincipalEl.appendChild(defaultOption);
-                } else if (parques && parques.length > 0) {
-                    parkSelectorPrincipalEl.innerHTML = ''; 
-                    parques.forEach(parque => {
-                        const option = document.createElement('option');
-                        option.value = parque.id_pk; 
-                        option.textContent = `${parque.nome_parque.toUpperCase()} (${parque.cidade || 'N/A'})`;
-                        parkSelectorPrincipalEl.appendChild(option);
-                    });
-                } else {
-                    // Nenhum parque encontrado ou tabela vazia
-                    parkSelectorPrincipalEl.innerHTML = '';
-                    const defaultOption = document.createElement('option');
-                    defaultOption.value = "default";
-                    defaultOption.textContent = "NENHUM PARQUE DISPONÍVEL";
-                    parkSelectorPrincipalEl.appendChild(defaultOption);
-                }
-
-                const storedParkId = localStorage.getItem('parqueSelecionadoMultiparkId');
-                const userAssociatedParkId = userProfileData?.parque_associado_id;
-
-                if (storedParkId && parkSelectorPrincipalEl.querySelector(`option[value="${storedParkId}"]`)) {
-                    parkSelectorPrincipalEl.value = storedParkId;
-                } else if (userAssociatedParkId && parkSelectorPrincipalEl.querySelector(`option[value="${userAssociatedParkId}"]`)) {
-                    parkSelectorPrincipalEl.value = userAssociatedParkId;
-                    localStorage.setItem('parqueSelecionadoMultiparkId', userAssociatedParkId);
-                } else if (parkSelectorPrincipalEl.options.length > 0) {
-                    parkSelectorPrincipalEl.value = parkSelectorPrincipalEl.options[0].value;
-                    localStorage.setItem('parqueSelecionadoMultiparkId', parkSelectorPrincipalEl.options[0].value);
-                }
-                
-                // Adicionar opção "TODOS OS PARQUES" para super_admin
-                const existingAllParksOption = parkSelectorPrincipalEl.querySelector('option[value="todos"]');
-                const isSuperAdmin = userProfileData?.role === 'super_admin' || userProfileData?.role === 'super admin';
-                
-                if (isSuperAdmin) {
-                    if (!existingAllParksOption) {
-                        const allParksOption = document.createElement('option');
-                        allParksOption.value = "todos"; 
-                        allParksOption.textContent = "TODOS OS PARQUES";
-                        parkSelectorPrincipalEl.appendChild(allParksOption); 
-                    }
-                } else {
-                    if (existingAllParksOption) existingAllParksOption.remove();
-                }
-            } catch (e) {
-                console.error("Erro ao atualizar seletor de parques:", e);
-                // Garantir que há pelo menos uma opção no seletor
-                if (parkSelectorPrincipalEl.options.length === 0) {
-                    const defaultOption = document.createElement('option');
-                    defaultOption.value = "default";
-                    defaultOption.textContent = "PARQUE PADRÃO";
-                    parkSelectorPrincipalEl.appendChild(defaultOption);
-                }
-            }
+            await carregarParques();
         }
     }
 
@@ -297,7 +492,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Inicializar a página após um pequeno atraso para garantir que todos os scripts foram carregados
-    setTimeout(() => {
-        initPrincipalPage();
-    }, 100);
+    setTimeout(initPrincipalPage, 100);
 });
