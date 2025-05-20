@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditorias Internas - Ferramentas Multipark</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #333; margin: 0; }
+        .subapp-page-container { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 1rem; box-sizing: border-box; }
+        .subapp-main-content { background-color: #f0f2f5; padding: 1rem; border-radius: 0.5rem; width: 100%; max-width: 1600px; display: flex; flex-direction: column; align-items: center; margin-top: 1rem; margin-bottom: 2rem; }
+        .app-logo-styled { font-size: 1.75rem; font-weight: 700; color: #0A2B5C; margin-bottom: 1.5rem; text-align: center; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; width: 100%; }
+        .app-logo-styled .logo-p-icon { background-color: #0A2B5C; color: #fff; padding: 3px 9px; margin-right: 5px; border-radius: 4px; font-family: 'Arial Black', Gadget, sans-serif; font-size: 1.8rem; line-height: 1; }
+        .subapp-header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: #fff; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .subapp-title { font-size: 1.5rem; font-weight: 600; color: #0A2B5C; }
+        .subapp-section { width: 100%; background-color: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .subapp-section-title { font-size: 1.2rem; font-weight: 600; color: #333; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #eee; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+        .form-grid .col-span-full { grid-column: 1 / -1; }
+        .form-grid label, .filters-grid label { font-size: 0.875rem; margin-bottom: 0.25rem; color: #555; display: block;}
+        .form-grid input, .form-grid select, .form-grid textarea,
+        .filters-grid input, .filters-grid select, .file-input {
+            padding: 0.6rem; border: 1px solid #ccc; border-radius: 0.25rem; font-size: 0.9rem; background-color: #fff; width: 100%;
+        }
+        .actions-container { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem; justify-content: flex-start; }
+        .action-button { background-color: #0d6efd; color: white; font-weight: 500; padding: 0.6rem 1.2rem; border-radius: 0.375rem; transition: background-color 0.2s; border: none; cursor: pointer; }
+        .action-button:hover { background-color: #0b5ed7; }
+        .action-button.secondary { background-color: #6c757d; }
+        .action-button.secondary:hover { background-color: #5a6268; }
+        .action-button.warning { background-color: #f59e0b; color: white; }
+        .action-button.warning:hover { background-color: #d97706; }
+        .table-container { overflow-x: auto; margin-top: 1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 0.85em; }
+        th { background-color: #f8f9fa; font-weight: 600; color: #495057; }
+        .hidden { display: none !important; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #0d6efd; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+        .stat-card { background-color: #fafafa; border: 1px solid #e5e5e5; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .stat-card h4 { font-weight: 600; color: #374151; margin-bottom: 0.5rem; font-size: 1rem; }
+        .stat-card p.stat-value, .stat-card div.stat-detail { font-size: 1.25rem; font-weight: 700; color: #1e3a8a; } /* Azul mais escuro para valores */
+        .stat-card div.stat-detail { font-size: 0.9rem; font-weight: normal; color: #4b5563; margin-top: 0.25rem;}
+        .stat-card ul { list-style: disc; padding-left: 1.25rem; font-size: 0.85rem; color: #4b5563; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="subapp-page-container">
+        <div class="subapp-main-content">
+            <div class="app-logo-styled">
+                <span class="logo-p-icon">P</span><span class="logo-text-multipark">MULTIPARK</span>
+            </div>
+
+            <header class="subapp-header">
+                <h2 class="subapp-title">Auditorias Internas de Condutores</h2>
+                <button id="voltarDashboardBtnAuditoria" class="action-button secondary">Voltar ao Dashboard</button>
+            </header>
+
+            <section class="subapp-section">
+                <h3 class="subapp-section-title">Iniciar Nova Auditoria</h3>
+                <div class="form-grid">
+                    <div>
+                        <label for="auditFuncionarioSelect">Funcionário a Auditar:</label>
+                        <select id="auditFuncionarioSelect" required></select>
+                    </div>
+                    <div>
+                        <label for="auditPeriodoInicio">Período de Análise - Início:</label>
+                        <input type="date" id="auditPeriodoInicio" required>
+                    </div>
+                    <div>
+                        <label for="auditPeriodoFim">Período de Análise - Fim:</label>
+                        <input type="date" id="auditPeriodoFim" required>
+                    </div>
+                </div>
+                <div class="form-grid mt-4">
+                    <div>
+                        <label for="auditFileVelocidadeJson">Ficheiro Velocidade/Localização (JSON):</label>
+                        <input type="file" id="auditFileVelocidadeJson" class="file-input" accept=".json">
+                    </div>
+                    <div>
+                        <label for="auditFileMovimentacoesExcel">Ficheiro Movimentações (Excel - baseado em Reservas):</label>
+                        <input type="file" id="auditFileMovimentacoesExcel" class="file-input" accept=".csv, .xlsx">
+                    </div>
+                    <div>
+                        <label for="auditFilesAudio">Ficheiros de Áudio (Opcional, múltiplos):</label>
+                        <input type="file" id="auditFilesAudio" class="file-input" accept="audio/*" multiple>
+                    </div>
+                </div>
+                <div class="actions-container">
+                    <button id="auditIniciarAnaliseBtn" class="action-button warning">Iniciar Análise e Apresentar Dashboard</button>
+                </div>
+                <div id="auditUploadStatus" class="mt-4 text-sm"></div>
+                <div id="loadingAuditSpinner" class="loader hidden"></div>
+            </section>
+
+            <section id="auditDashboardSecao" class="subapp-section hidden">
+                <h3 class="subapp-section-title">Resultados da Auditoria para: <span id="auditNomeFuncionarioDashboard" class="font-normal"></span></h3>
+                <p class="text-sm text-gray-600 mb-4">Período Analisado: <span id="auditPeriodoDashboard"></span></p>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Velocidade</h4>
+                        <p class="stat-value" id="statVelocidadeMax">N/D</p>
+                        <div class="stat-detail">Velocidade Máxima Registada</div>
+                        <p class="stat-value mt-2 text-red-600" id="statVelocidadeAcimaLimite">N/D</p>
+                        <div class="stat-detail">Alertas de Velocidade Acima do Permitido (Nota: comparação com limites de estrada não implementada)</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Atividade (Movimentações)</h4>
+                        <p class="stat-value" id="statCarrosMovimentados">0</p>
+                        <div class="stat-detail">Total de Carros Movimentados</div>
+                        <p class="stat-value mt-2" id="statRecolhas">0</p>
+                        <div class="stat-detail">Recolhas Efetuadas</div>
+                        <p class="stat-value mt-2" id="statEntregas">0</p>
+                        <div class="stat-detail">Entregas Efetuadas</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Picagens vs. Atividade</h4>
+                        <p class="stat-value text-orange-600" id="statDisparidadePicagem">N/D</p>
+                        <div class="stat-detail">Disparidades significativas entre picagem e última atividade.</div>
+                        <ul id="listDisparidadesPicagem" class="text-xs mt-1 list-disc pl-5"></ul>
+                    </div>
+                     <div class="stat-card">
+                        <h4>Incidentes Reportados</h4>
+                        <p class="stat-value text-red-700" id="statPerdidosAchados">0</p>
+                        <div class="stat-detail">Casos de Perdidos/Achados Associados</div>
+                        <p class="stat-value mt-2 text-red-700" id="statReclamacoes">0</p>
+                        <div class="stat-detail">Reclamações Associadas</div>
+                    </div>
+                    <div class="stat-card col-span-full md:col-span-1"> {/* Ocupa largura total em mobile */}
+                        <h4>Veículos Conduzidos no Período</h4>
+                        <div id="listVeiculosConduzidos" class="stat-detail max-h-40 overflow-y-auto border p-2 rounded">
+                            Lista de matrículas...
+                        </div>
+                    </div>
+                    <div class="stat-card col-span-full md:col-span-1">
+                        <h4>Atividade do Telefone (App)</h4>
+                        <p class="stat-value" id="statTelefoneBateriaMedia">N/D</p>
+                        <div class="stat-detail">Média de Bateria (%)</div>
+                        <p class="stat-value mt-2" id="statTelefonePings">N/D</p>
+                        <div class="stat-detail">Pings da Aplicação / Atividade</div>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <h4 class="text-lg font-semibold mb-2">Registos de Velocidade (Amostra)</h4>
+                    <div class="table-container max-h-96 overflow-y-auto">
+                        <table id="auditVelocidadeTable">
+                            <thead><tr><th>Data/Hora</th><th>Velocidade (km/h)</th><th>Localização (Lat, Lon)</th><th>Telefone Ativo</th><th>Bateria (%)</th></tr></thead>
+                            <tbody id="auditVelocidadeTableBody"></tbody>
+                        </table>
+                        <p id="auditVelocidadeNenhumaMsg" class="content-placeholder">Nenhum dado de velocidade importado/analisado.</p>
+                    </div>
+                </div>
+                
+                <div class="mt-8">
+                    <h4 class="text-lg font-semibold mb-2">Áudios Anexados</h4>
+                    <div id="auditListaAudios" class="space-y-2">
+                         <p class="text-sm text-gray-500">Nenhum áudio anexado para esta auditoria.</p>
+                    </div>
+                </div>
+                
+                <div class="mt-8">
+                    <label for="auditNotasFinais" class="block text-sm font-medium text-gray-700">Notas Finais da Auditoria / Observações:</label>
+                    <textarea id="auditNotasFinais" rows="4" class="w-full p-2 border rounded mt-1" placeholder="Conclusões e observações do auditor..."></textarea>
+                    <div class="actions-container">
+                        <button id="auditGuardarConclusoesBtn" class="action-button success">Guardar Conclusões da Auditoria</button>
+                    </div>
+                    <div id="auditSaveStatus" class="mt-2 text-sm"></div>
+                </div>
+
+            </section>
+        </div>
+    </div>
+
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/auth_global.js"></script>
+    <script src="js/auditorias_internas.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</body>
+</html>

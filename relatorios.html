@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios Comparativos - Ferramentas Multipark</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #333; margin: 0; }
+        .subapp-page-container { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 1rem; box-sizing: border-box; }
+        .subapp-main-content { background-color: #f0f2f5; padding: 1rem; border-radius: 0.5rem; width: 100%; max-width: 1600px; display: flex; flex-direction: column; align-items: center; margin-top: 1rem; margin-bottom: 2rem; }
+        .app-logo-styled { font-size: 1.75rem; font-weight: 700; color: #0A2B5C; margin-bottom: 1.5rem; text-align: center; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; width: 100%; }
+        .app-logo-styled .logo-p-icon { background-color: #0A2B5C; color: #fff; padding: 3px 9px; margin-right: 5px; border-radius: 4px; font-family: 'Arial Black', Gadget, sans-serif; font-size: 1.8rem; line-height: 1; }
+        .subapp-header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: #fff; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .subapp-title { font-size: 1.5rem; font-weight: 600; color: #0A2B5C; }
+        .subapp-section { width: 100%; background-color: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .subapp-section-title { font-size: 1.2rem; font-weight: 600; color: #333; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #eee; }
+        .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: flex-end; margin-bottom: 1.5rem; }
+        .filters-grid label { font-size: 0.875rem; margin-bottom: 0.25rem; color: #555; display: block;}
+        .filters-grid input, .filters-grid select {
+            padding: 0.6rem; border: 1px solid #ccc; border-radius: 0.25rem; font-size: 0.9rem; background-color: #fff; width: 100%;
+        }
+        .action-button { background-color: #0d6efd; color: white; font-weight: 500; padding: 0.6rem 1.2rem; border-radius: 0.375rem; transition: background-color 0.2s; border: none; cursor: pointer; }
+        .action-button:hover { background-color: #0b5ed7; }
+        .action-button.secondary { background-color: #6c757d; }
+        .action-button.secondary:hover { background-color: #5a6268; }
+        .hidden { display: none !important; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #0d6efd; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .table-container { overflow-x: auto; margin-top: 1.5rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px 12px; text-align: left; font-size: 0.9em; white-space: nowrap; }
+        th { background-color: #f8f9fa; font-weight: 600; color: #495057; position: sticky; top: 0; z-index: 10;}
+        td.metric-label { font-weight: 500; cursor: pointer; }
+        td.metric-label:hover { background-color: #e9ecef; }
+        
+        .chart-container { background-color: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-top:1.5rem; min-height:400px}
+        .ts-wrapper .ts-control { padding: 0.55rem 0.75rem !important; } /* Ajustar padding do TomSelect */
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="subapp-page-container">
+        <div class="subapp-main-content">
+            <div class="app-logo-styled">
+                <span class="logo-p-icon">P</span><span class="logo-text-multipark">MULTIPARK</span>
+            </div>
+
+            <header class="subapp-header">
+                <h2 class="subapp-title">Relatórios Comparativos</h2>
+                <button id="voltarDashboardBtnRelatorios" class="action-button secondary">Voltar ao Dashboard</button>
+            </header>
+
+            <section class="subapp-section">
+                <h3 class="subapp-section-title">Configurar Relatório</h3>
+                <div class="filters-grid">
+                    <div>
+                        <label for="relTipoComparacao">Tipo de Comparação:</label>
+                        <select id="relTipoComparacao">
+                            <option value="ANUAL">Anual (Comparar Anos Inteiros)</option>
+                            <option value="MENSAL">Mensal (Comparar Mesmo Mês Através dos Anos)</option>
+                            <option value="DIARIA">Diária (Comparar Mesmo Dia Através dos Anos)</option>
+                            <option value="INTERVALO">Intervalo de Datas Personalizado</option>
+                        </select>
+                    </div>
+                    <div id="relAnosContainer">
+                        <label for="relAnosSelect">Anos para Comparação:</label>
+                        <select id="relAnosSelect" multiple placeholder="Selecione os anos..."></select>
+                    </div>
+                    <div id="relMesContainer" class="hidden">
+                        <label for="relMesSelect">Mês:</label>
+                        <select id="relMesSelect">
+                            <option value="1">Janeiro</option> <option value="2">Fevereiro</option> <option value="3">Março</option>
+                            <option value="4">Abril</option> <option value="5">Maio</option> <option value="6">Junho</option>
+                            <option value="7">Julho</option> <option value="8">Agosto</option> <option value="9">Setembro</option>
+                            <option value="10">Outubro</option> <option value="11">Novembro</option> <option value="12">Dezembro</option>
+                        </select>
+                    </div>
+                    <div id="relDiaContainer" class="hidden">
+                        <label for="relDiaInput">Dia (DD-MM):</label>
+                        <input type="text" id="relDiaInput" placeholder="Ex: 25-12 (para comparar o dia de Natal)">
+                    </div>
+                    <div id="relIntervaloContainer" class="hidden">
+                        <label for="relIntervaloDatas">Intervalo de Datas:</label>
+                        <input type="text" id="relIntervaloDatas" placeholder="Selecione o intervalo">
+                    </div>
+                     <div>
+                        <label for="relFiltroParque">Parque (Opcional):</label>
+                        <select id="relFiltroParque"><option value="">Todos os Parques</option></select>
+                    </div>
+                    <button id="relGerarRelatorioBtn" class="action-button self-end">Gerar Relatório</button>
+                </div>
+            </section>
+
+            <section id="relResultadosSecao" class="subapp-section hidden">
+                <h3 class="subapp-section-title">Resultados Comparativos: <span id="relTituloResultado" class="font-normal"></span></h3>
+                <div id="loadingRelatorioSpinner" class="loader hidden"></div>
+                
+                <div class="table-container">
+                    <table id="relComparativoTable">
+                        <thead>
+                            <tr id="relTableHeaderRow">
+                                <th>Métrica</th>
+                                {/* */}
+                            </tr>
+                        </thead>
+                        <tbody id="relTableBody">
+                            {/* */}
+                        </tbody>
+                    </table>
+                    <p id="relNenhumDadoMsg" class="content-placeholder hidden">Nenhum dado encontrado para os critérios selecionados.</p>
+                </div>
+
+                <div class="chart-container">
+                    <h4 class="subapp-section-title text-center" id="relChartTitle">Evolução da Métrica Selecionada</h4>
+                    <canvas id="relComparativoChart"></canvas>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/auth_global.js"></script>
+    <script src="js/relatorios.js"></script>
+</body>
+</html>

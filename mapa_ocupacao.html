@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Ocupação - Ferramentas Multipark</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #333; margin: 0; }
+        .subapp-page-container { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 1rem; box-sizing: border-box; }
+        .subapp-main-content { background-color: #f0f2f5; padding: 1rem; border-radius: 0.5rem; width: 100%; max-width: 1400px; display: flex; flex-direction: column; align-items: center; margin-top: 1rem; margin-bottom: 2rem; }
+        .app-logo-styled { font-size: 1.75rem; font-weight: 700; color: #0A2B5C; margin-bottom: 1.5rem; text-align: center; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; width: 100%; }
+        .app-logo-styled .logo-p-icon { background-color: #0A2B5C; color: #fff; padding: 3px 9px; margin-right: 5px; border-radius: 4px; font-family: 'Arial Black', Gadget, sans-serif; font-size: 1.8rem; line-height: 1; }
+        .subapp-header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: #fff; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .subapp-title { font-size: 1.5rem; font-weight: 600; color: #0A2B5C; }
+        .subapp-section { width: 100%; background-color: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .subapp-section-title { font-size: 1.2rem; font-weight: 600; color: #333; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #eee; }
+        .filters-grid, .form-grid { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; align-items: flex-end; }
+        .filters-grid > div, .form-grid > div { display: flex; flex-direction: column; flex-grow: 1; min-width: 200px; }
+        .filters-grid label, .form-grid label { font-size: 0.875rem; margin-bottom: 0.25rem; color: #555; }
+        .filters-grid input[type="date"], .filters-grid select,
+        .form-grid input[type="number"] {
+            padding: 0.6rem; border: 1px solid #ccc; border-radius: 0.25rem; font-size: 0.9rem; background-color: #fff; width: 100%;
+        }
+        .action-button { background-color: #0d6efd; color: white; font-weight: 500; padding: 0.6rem 1.2rem; border-radius: 0.375rem; transition: background-color 0.2s; border: none; cursor: pointer; }
+        .action-button:hover { background-color: #0b5ed7; }
+        .action-button.secondary { background-color: #6c757d; }
+        .action-button.secondary:hover { background-color: #5a6268; }
+        .hidden { display: none !important; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #0d6efd; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        #mapaOcupacaoCalendar { min-height: 600px; /* Ajustar altura conforme necessário */ }
+        .occupation-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+        .occupation-stat-card { background-color: #e0f2fe; /* Azul claro para ocupação */ padding: 1.25rem; border-radius: 0.375rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #0ea5e9; }
+        .occupation-stat-card h4 { font-weight: 600; color: #0369a1; margin-bottom: 0.5rem; font-size: 1rem; }
+        .occupation-stat-card p { font-size: 0.9rem; color: #075985; }
+        .occupation-stat-card .value { font-size: 1.5rem; font-weight: 700; }
+        .occupation-stat-card .progress-bar-bg { background-color: #bae6fd; border-radius: 0.25rem; height: 10px; margin-top: 0.5rem; overflow: hidden;}
+        .occupation-stat-card .progress-bar-fill { background-color: #0ea5e9; height: 100%; transition: width 0.5s ease-in-out;}
+
+        /* Estilos para dias do calendário com ocupação (exemplo) */
+        .fc-daygrid-day.ocupacao-baixa .fc-daygrid-day-top { background-color: rgba(74, 222, 128, 0.2); /* Verde claro */ }
+        .fc-daygrid-day.ocupacao-media .fc-daygrid-day-top { background-color: rgba(250, 204, 21, 0.2); /* Amarelo claro */ }
+        .fc-daygrid-day.ocupacao-alta .fc-daygrid-day-top { background-color: rgba(248, 113, 113, 0.2); /* Vermelho claro */ }
+        .fc-daygrid-day.ocupacao-cheio .fc-daygrid-day-top { background-color: rgba(239, 68, 68, 0.4); /* Vermelho mais forte */ }
+        .fc-daygrid-day-number { padding: 4px !important; } /* Melhorar visibilidade do número do dia */
+        .ocupacao-info-evento { font-size: 0.7em; padding: 1px 3px; border-radius: 3px; margin-top: 1px; display:block; text-align: center; }
+        .ocupacao-coberta { background-color: #3b82f6; color: white; }
+        .ocupacao-descoberta { background-color: #f59e0b; color: white; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="subapp-page-container">
+        <div class="subapp-main-content">
+            <div class="app-logo-styled">
+                <span class="logo-p-icon">P</span><span class="logo-text-multipark">MULTIPARK</span>
+            </div>
+
+            <header class="subapp-header">
+                <h2 class="subapp-title">Mapa de Ocupação Inteligente</h2>
+                <button id="voltarDashboardBtnMapa" class="action-button secondary">Voltar ao Dashboard</button>
+            </header>
+            
+            <section class="subapp-section" id="adminCapacidadeSection">
+                <h3 class="subapp-section-title">Gerir Capacidade dos Parques (Admin)</h3>
+                <div class="form-grid">
+                    <div>
+                        <label for="mapaParqueSelectAdmin">Selecionar Parque para Editar Capacidade:</label>
+                        <select id="mapaParqueSelectAdmin"></select>
+                    </div>
+                    <div>
+                        <label for="mapaCapacidadeCobertosAdmin">Lugares Cobertos Totais:</label>
+                        <input type="number" id="mapaCapacidadeCobertosAdmin" min="0">
+                    </div>
+                    <div>
+                        <label for="mapaCapacidadeDescobertosAdmin">Lugares Descobertos Totais:</label>
+                        <input type="number" id="mapaCapacidadeDescobertosAdmin" min="0">
+                    </div>
+                    <div class="actions-container">
+                        <button id="mapaGuardarCapacidadeBtn" class="action-button">Guardar Capacidade</button>
+                    </div>
+                </div>
+                <div id="mapaCapacidadeStatus" class="mt-2 text-sm"></div>
+            </section>
+
+            <section class="subapp-section">
+                <h3 class="subapp-section-title">Visualizar Ocupação</h3>
+                <div class="filters-grid">
+                    <div>
+                        <label for="mapaParqueSelect">Parque/Cidade:</label>
+                        <select id="mapaParqueSelect"></select>
+                    </div>
+                    <div>
+                        <label for="mapaDataSelect">Ver Ocupação para Data Específica:</label>
+                        <input type="date" id="mapaDataSelect">
+                    </div>
+                </div>
+
+                <div id="loadingMapaOcupacaoSpinner" class="loader hidden"></div>
+                
+                <div id="mapaOcupacaoDashboard" class="occupation-stats-grid">
+                    <div class="occupation-stat-card">
+                        <h4 id="mapaNomeParqueSelecionado">Parque: N/A</h4>
+                        <p class="text-xs text-gray-500" id="mapaDataSelecionadaInfo">Data: N/A</p>
+                    </div>
+                    <div class="occupation-stat-card">
+                        <h4>Lugares Cobertos</h4>
+                        <p><span id="mapaOcupadosCobertos" class="value">0</span> / <span id="mapaTotalCobertos" class="value">0</span> Ocupados</p>
+                        <div class="progress-bar-bg"><div id="mapaProgressCobertos" class="progress-bar-fill" style="width: 0%;"></div></div>
+                        <p class="text-xs mt-1"><span id="mapaPercentCobertos">0</span>% Ocupado, <span id="mapaLivresCobertos">0</span> Livres</p>
+                    </div>
+                    <div class="occupation-stat-card">
+                        <h4>Lugares Descobertos</h4>
+                        <p><span id="mapaOcupadosDescobertos" class="value">0</span> / <span id="mapaTotalDescobertos" class="value">0</span> Ocupados</p>
+                        <div class="progress-bar-bg"><div id="mapaProgressDescobertos" class="progress-bar-fill" style="width: 0%;"></div></div>
+                        <p class="text-xs mt-1"><span id="mapaPercentDescobertos">0</span>% Ocupado, <span id="mapaLivresDescobertos">0</span> Livres</p>
+                    </div>
+                </div>
+
+                <div id="mapaOcupacaoCalendarContainer" class="mt-6">
+                    <h4 class="text-lg font-semibold mb-2">Calendário de Ocupação</h4>
+                    <div id="mapaOcupacaoCalendar"></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/auth_global.js"></script>
+    <script src="js/mapa_ocupacao.js"></script>
+</body>
+</html>

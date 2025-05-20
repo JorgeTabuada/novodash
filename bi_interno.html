@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BI Interno - Ferramentas Multipark</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #333; margin: 0; }
+        .subapp-page-container { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 1rem; box-sizing: border-box; }
+        .subapp-main-content { background-color: #f0f2f5; padding: 1rem; border-radius: 0.5rem; width: 100%; max-width: 1600px; display: flex; flex-direction: column; align-items: center; margin-top: 1rem; margin-bottom: 2rem; }
+        .app-logo-styled { font-size: 1.75rem; font-weight: 700; color: #0A2B5C; margin-bottom: 1.5rem; text-align: center; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; width: 100%; }
+        .app-logo-styled .logo-p-icon { background-color: #0A2B5C; color: #fff; padding: 3px 9px; margin-right: 5px; border-radius: 4px; font-family: 'Arial Black', Gadget, sans-serif; font-size: 1.8rem; line-height: 1; }
+        .subapp-header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: #fff; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .subapp-title { font-size: 1.5rem; font-weight: 600; color: #0A2B5C; }
+        .subapp-section { width: 100%; background-color: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .subapp-section-title { font-size: 1.2rem; font-weight: 600; color: #333; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #eee; }
+        .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; align-items: flex-end; margin-bottom: 1.5rem; }
+        .filters-grid label { font-size: 0.875rem; margin-bottom: 0.25rem; color: #555; display: block;}
+        .filters-grid input, .filters-grid select {
+            padding: 0.6rem; border: 1px solid #ccc; border-radius: 0.25rem; font-size: 0.9rem; background-color: #fff; width: 100%;
+        }
+        .action-button { background-color: #0d6efd; color: white; font-weight: 500; padding: 0.6rem 1.2rem; border-radius: 0.375rem; transition: background-color 0.2s; border: none; cursor: pointer; }
+        .action-button:hover { background-color: #0b5ed7; }
+        .action-button.secondary { background-color: #6c757d; }
+        .action-button.secondary:hover { background-color: #5a6268; }
+        .hidden { display: none !important; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #0d6efd; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .kpi-card { background-color: #fff; border: 1px solid #e5e7eb; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; }
+        .kpi-card-title { font-size: 0.9rem; font-weight: 500; color: #4b5563; margin-bottom: 0.5rem; text-transform: uppercase; }
+        .kpi-card-value { font-size: 2rem; font-weight: 700; color: #0A2B5C; margin-bottom: 0.25rem; }
+        .kpi-card-comparison { font-size: 0.8rem; color: #6b7280; }
+        .kpi-card-comparison .positive { color: #16a34a; }
+        .kpi-card-comparison .negative { color: #dc2626; }
+
+        .chart-container { background-color: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom:1.5rem; min-height:350px}
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="subapp-page-container">
+        <div class="subapp-main-content">
+            <div class="app-logo-styled">
+                <span class="logo-p-icon">P</span><span class="logo-text-multipark">MULTIPARK</span>
+            </div>
+
+            <header class="subapp-header">
+                <h2 class="subapp-title">BI Interno - Análise de Desempenho</h2>
+                <button id="voltarDashboardBtnBI" class="action-button secondary">Voltar ao Dashboard</button>
+            </header>
+
+            <section class="subapp-section">
+                <h3 class="subapp-section-title">Filtros Globais da Análise</h3>
+                <div class="filters-grid">
+                    <div>
+                        <label for="biPeriodoRange">Período:</label>
+                        <input type="text" id="biPeriodoRange" placeholder="Selecione o intervalo de datas">
+                    </div>
+                    <div>
+                        <label for="biFiltroParque">Parque(s):</label>
+                        <select id="biFiltroParque" multiple>
+                            {/* */}
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Ctrl/Cmd + Clique para múltiplos. Deixe vazio para todos.</p>
+                    </div>
+                    <div>
+                        <label for="biFiltroCondutor">Condutor (Opcional):</label>
+                        <select id="biFiltroCondutor">
+                            <option value="">Todos os Condutores</option>
+                            {/* */}
+                        </select>
+                    </div>
+                    <button id="biAplicarFiltrosBtn" class="action-button self-end">Aplicar Filtros e Atualizar BI</button>
+                </div>
+                <div id="loadingBISpinner" class="loader hidden"></div>
+            </section>
+
+            <section id="biResultadosSecao" class="w-full">
+                {/* */}
+                <div class="subapp-section">
+                    <h3 class="subapp-section-title">Indicadores Chave de Desempenho (KPIs)</h3>
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-card-title">Receita Bruta Total</div>
+                            <div class="kpi-card-value" id="kpiReceitaTotal">0,00 €</div>
+                            <div class="kpi-card-comparison" id="kpiReceitaComp">-- vs período anterior</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-card-title">Despesas Totais</div>
+                            <div class="kpi-card-value" id="kpiDespesasTotal">0,00 €</div>
+                            <div class="kpi-card-comparison" id="kpiDespesasComp">-- vs período anterior</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-card-title">Lucro (Receita - Despesa)</div>
+                            <div class="kpi-card-value" id="kpiLucroTotal">0,00 €</div>
+                            <div class="kpi-card-comparison" id="kpiLucroComp">-- vs período anterior</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-card-title">Total de Reservas</div>
+                            <div class="kpi-card-value" id="kpiTotalReservas">0</div>
+                            <div class="kpi-card-comparison" id="kpiReservasComp">-- vs período anterior</div>
+                        </div>
+                         <div class="kpi-card">
+                            <div class="kpi-card-title">Taxa de Ocupação Média</div>
+                            <div class="kpi-card-value" id="kpiTaxaOcupacao">0%</div>
+                            <div class="kpi-card-comparison">(Requer dados de capacidade e cálculo específico)</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-card-title">Taxa de Cancelamento</div>
+                            <div class="kpi-card-value" id="kpiTaxaCancelamento">0%</div>
+                            <div class="kpi-card-comparison" id="kpiCancelamentosComp">-- vs período anterior</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* */}
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h4 class="subapp-section-title text-center">Receita por Parque</h4>
+                        <canvas id="biChartReceitaParque"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4 class="subapp-section-title text-center">Despesas por Tipo</h4>
+                        <canvas id="biChartDespesasTipo"></canvas>
+                    </div>
+                    <div class="chart-container col-span-full"> {/* Ocupa largura total se só houver este */}
+                        <h4 class="subapp-section-title text-center">Evolução da Receita Mensal</h4>
+                        <canvas id="biChartEvolucaoReceita"></canvas>
+                    </div>
+                     <div class="chart-container">
+                        <h4 class="subapp-section-title text-center">Nº de Reservas por Origem</h4>
+                        <canvas id="biChartReservasOrigem"></canvas>
+                    </div>
+                     <div class="chart-container">
+                        <h4 class="subapp-section-title text-center">Top Condutores (Nº Serviços)</h4>
+                        <canvas id="biChartTopCondutores"></canvas>
+                    </div>
+                </div>
+                {/* */}
+            </section>
+        </div>
+    </div>
+
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/auth_global.js"></script>
+    <script src="js/bi_interno.js"></script>
+</body>
+</html>

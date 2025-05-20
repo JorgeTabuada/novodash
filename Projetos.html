@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projetos - Ferramentas Multipark</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #333; margin: 0; }
+        .subapp-page-container { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 1rem; box-sizing: border-box; }
+        .subapp-main-content { background-color: #f0f2f5; padding: 1rem; border-radius: 0.5rem; width: 100%; max-width: 1600px; display: flex; flex-direction: column; align-items: center; margin-top: 1rem; margin-bottom: 2rem; }
+        .app-logo-styled { font-size: 1.75rem; font-weight: 700; color: #0A2B5C; margin-bottom: 1.5rem; text-align: center; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; width: 100%; }
+        .app-logo-styled .logo-p-icon { background-color: #0A2B5C; color: #fff; padding: 3px 9px; margin-right: 5px; border-radius: 4px; font-family: 'Arial Black', Gadget, sans-serif; font-size: 1.8rem; line-height: 1; }
+        .subapp-header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: #fff; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .subapp-title { font-size: 1.5rem; font-weight: 600; color: #0A2B5C; }
+        .subapp-section { width: 100%; background-color: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .subapp-section-title { font-size: 1.2rem; font-weight: 600; color: #333; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #eee; }
+        .filters-grid, .actions-container, .form-grid { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; align-items: flex-end; }
+        .filters-grid > div, .form-grid > div { display: flex; flex-direction: column; flex-grow: 1; min-width: 180px; }
+        .filters-grid label, .form-grid label { font-size: 0.875rem; margin-bottom: 0.25rem; color: #555; }
+        .filters-grid input[type="text"], .filters-grid input[type="date"], .filters-grid input[type="number"],
+        .filters-grid select, .file-input, .form-grid input, .form-grid select, .form-grid textarea {
+            padding: 0.6rem; border: 1px solid #ccc; border-radius: 0.25rem; font-size: 0.9rem; background-color: #fff; width: 100%;
+        }
+        .action-button { background-color: #0d6efd; color: white; font-weight: 500; padding: 0.6rem 1.2rem; border-radius: 0.375rem; transition: background-color 0.2s; border: none; cursor: pointer; }
+        .action-button:hover { background-color: #0b5ed7; }
+        .action-button.secondary { background-color: #6c757d; }
+        .action-button.secondary:hover { background-color: #5a6268; }
+        .table-container { overflow-x: auto; margin-top: 1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 0.85em; }
+        th { background-color: #f8f9fa; font-weight: 600; color: #495057; }
+        .hidden { display: none !important; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #0d6efd; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .kanban-board-container { display: flex; gap: 1rem; overflow-x: auto; padding: 1rem 0; min-height: 400px; background-color: #f9fafb; border-radius: 0.375rem; }
+        .kanban-column { background-color: #e5e7eb; padding: 0.75rem; border-radius: 0.375rem; min-width: 300px; width: 300px; flex-shrink: 0; display: flex; flex-direction: column; }
+        .kanban-column-title { font-weight: 600; margin-bottom: 0.75rem; text-align: center; padding: 0.5rem; background-color: #d1d5db; border-radius: 0.25rem; color: #374151;}
+        .kanban-cards-container { flex-grow: 1; min-height: 200px; }
+        .kanban-card { background-color: #fff; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.75rem; margin-bottom: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; } /* Adicionado cursor pointer */
+        .kanban-card h5 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; color: #1f2937; }
+        .kanban-card p { margin: 0 0 0.25rem 0; font-size: 0.85em; color: #4b5563; }
+        .kanban-card small { font-size: 0.75em; color: #6b7280; display: block; margin-top: 0.25rem; }
+        .kanban-card .prazo { font-weight: 500; }
+        .kanban-card.overdue .prazo { color: #ef4444; font-weight: bold; }
+
+        .calendar-container, .timeline-container { min-height: 500px; background-color: #fff; padding:1rem; border-radius: 0.375rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .content-placeholder { min-height: 200px; display: flex; align-items: center; justify-content: center; border: 2px dashed #ddd; border-radius: 0.25rem; color: #777; text-align: center; padding: 1rem; background-color: #f9f9f9; }
+        
+        /* Modal */
+        .form-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1050; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .form-modal-backdrop.active { opacity: 1; visibility: visible; }
+        .form-modal-dialog { background-color: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 100%; max-width: 800px; /* Aumentado para mais campos */ transform: translateY(-20px); transition: transform 0.3s ease; }
+        .form-modal-backdrop.active .form-modal-dialog { transform: translateY(0); }
+        .form-modal-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.75rem; margin-bottom: 1rem; border-bottom: 1px solid #eee; }
+        .form-modal-title { font-size: 1.25rem; font-weight: 600; }
+        .form-modal-body { max-height: 75vh; overflow-y: auto; padding-right: 10px; }
+        .form-modal-footer { padding-top: 1rem; margin-top: 1rem; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 0.75rem; }
+        .progress-bar-container { width: 100%; background-color: #e5e7eb; border-radius: 0.25rem; overflow: hidden; margin-top: 0.25rem; }
+        .progress-bar { height: 10px; background-color: #3b82f6; border-radius: 0.25rem; transition: width 0.3s ease; text-align: center; line-height:10px; font-size:0.7em; color:white; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="subapp-page-container">
+        <div class="subapp-main-content">
+            <div class="app-logo-styled">
+                <span class="logo-p-icon">P</span><span class="logo-text-multipark">MULTIPARK</span>
+            </div>
+
+            <header class="subapp-header">
+                <h2 class="subapp-title">Gestão de Projetos</h2>
+                <button id="voltarDashboardBtnProjetos" class="action-button secondary">Voltar ao Dashboard</button>
+            </header>
+
+            <section class="subapp-section">
+                <h3 class="subapp-section-title">Filtros e Visualização</h3>
+                <div class="filters-grid">
+                    <div>
+                        <label for="projetoFiltroUser">Ver Projetos de/com:</label>
+                        <select id="projetoFiltroUser">
+                            <option value="meus_associados">Meus Projetos (Responsável/Membro)</option>
+                            <option value="todos_subordinados">Minha Equipa/Subordinados</option>
+                            {/* */}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="projetoFiltroEstado">Estado:</label>
+                        <select id="projetoFiltroEstado">
+                            <option value="">Todos</option>
+                            <option value="Planeado">Planeado</option>
+                            <option value="Em Curso">Em Curso</option>
+                            <option value="Concluído">Concluído</option>
+                            <option value="Suspenso">Suspenso</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="projetoFiltroTipo">Tipo de Projeto:</label>
+                        <select id="projetoFiltroTipo"><option value="">Todos</option></select>
+                    </div>
+                    <div>
+                        <label for="projetoFiltroPrazoDe">Prazo de:</label>
+                        <input type="date" id="projetoFiltroPrazoDe">
+                    </div>
+                    <div>
+                        <label for="projetoFiltroPrazoAte">Prazo até:</label>
+                        <input type="date" id="projetoFiltroPrazoAte">
+                    </div>
+                    <button id="projetoAplicarFiltrosBtn" class="action-button">Aplicar Filtros</button>
+                </div>
+                <div class="actions-container mt-4">
+                    <button id="projetoNovoBtn" class="action-button">Novo Projeto</button>
+                    <div class="ml-auto">
+                        <label for="projetoViewMode" class="mr-2">Ver como:</label>
+                        <select id="projetoViewMode" class="p-2 border rounded">
+                            <option value="lista">Lista</option>
+                            <option value="kanban">Kanban</option>
+                            <option value="calendario">Calendário/Timeline</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="subapp-section">
+                <div id="loadingProjetosSpinner" class="loader hidden"></div>
+
+                <div id="projetosViewLista" class="view-content">
+                    <h3 class="subapp-section-title">Lista de Projetos</h3>
+                    <div class="table-container">
+                        <table id="projetosTable">
+                            <thead>
+                                <tr>
+                                    <th>Nome do Projeto</th>
+                                    <th>Responsável Principal</th>
+                                    <th>Estado</th>
+                                    <th>Prazo</th>
+                                    <th>Orçamento (€)</th>
+                                    <th>Despesas (€)</th>
+                                    <th>Progresso Tarefas</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="projetosTableBody"></tbody>
+                        </table>
+                    </div>
+                    <p id="projetosListaNenhumaMsg" class="content-placeholder hidden">Nenhum projeto encontrado.</p>
+                    <div id="projetosListaPaginacao" class="mt-4 flex justify-center"></div>
+                </div>
+
+                <div id="projetosViewKanban" class="view-content hidden">
+                    <h3 class="subapp-section-title">Quadro Kanban de Projetos</h3>
+                    <div id="kanbanProjetosBoard" class="kanban-board-container">
+                        {/* */}
+                    </div>
+                </div>
+
+                <div id="projetosViewCalendario" class="view-content hidden">
+                    <h3 class="subapp-section-title">Timeline de Projetos</h3>
+                    <div id="timelineProjetosContainer" class="timeline-container content-placeholder">
+                        <p>(Integração de biblioteca de Timeline/Gantt aqui)</p>
+                    </div>
+                </div>
+            </section>
+
+            <div id="projetoDetalhesModal" class="form-modal-backdrop hidden">
+                <div class="form-modal-dialog !max-w-4xl"> {/* Modal mais largo */}
+                    <div class="form-modal-header">
+                        <h5 class="form-modal-title" id="projetoDetalhesModalTitle">Detalhes do Projeto</h5>
+                        <button type="button" class="text-xl font-bold projFecharDetalhesModalBtn">&times;</button>
+                    </div>
+                    <div class="form-modal-body">
+                        <input type="hidden" id="projetoDetalhesId">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                            <div><strong>Nome:</strong> <span id="detalheNomeProjeto"></span></div>
+                            <div><strong>Tipo:</strong> <span id="detalheTipoProjeto"></span></div>
+                            <div><strong>Responsável:</strong> <span id="detalheResponsavelProjeto"></span></div>
+                            <div><strong>Estado:</strong> <span id="detalheEstadoProjeto"></span></div>
+                            <div><strong>Início:</strong> <span id="detalheDataInicio"></span></div>
+                            <div><strong>Prazo:</strong> <span id="detalheDataPrazo"></span></div>
+                            <div><strong>Orçamento:</strong> <span id="detalheOrcamento"></span></div>
+                            <div><strong>Despesas:</strong> <span id="detalheDespesasTotal"></span></div>
+                            <div><strong>Saldo:</strong> <span id="detalheSaldoOrcamento"></span></div>
+                        </div>
+                        <div class="mb-4"><strong>Descrição:</strong> <p id="detalheDescricaoProjeto" class="text-sm text-gray-700 whitespace-pre-wrap"></p></div>
+                        
+                        <h4 class="text-md font-semibold mt-4 mb-2 border-b pb-1">Membros da Equipa</h4>
+                        <ul id="detalheListaMembros" class="list-disc list-inside text-sm"></ul>
+                        
+                        <h4 class="text-md font-semibold mt-4 mb-2 border-b pb-1">Progresso das Tarefas</h4>
+                        <div class="grid grid-cols-3 gap-4 text-sm mb-2">
+                            <div><strong>Pendentes:</strong> <span id="detalheTarefasPendentes">0</span></div>
+                            <div><strong>Em Progresso:</strong> <span id="detalheTarefasProgresso">0</span></div>
+                            <div><strong>Concluídas:</strong> <span id="detalheTarefasConcluidas">0</span></div>
+                        </div>
+                        <div id="detalheListaTarefasContainer" class="max-h-60 overflow-y-auto border rounded p-2">
+                            <p class="text-xs text-gray-500">Lista de tarefas associadas...</p>
+                        </div>
+
+                        <h4 class="text-md font-semibold mt-4 mb-2 border-b pb-1">Despesas Associadas</h4>
+                         <div id="detalheListaDespesasContainer" class="max-h-60 overflow-y-auto border rounded p-2">
+                            <p class="text-xs text-gray-500">Lista de despesas associadas...</p>
+                        </div>
+                    </div>
+                    <div class="form-modal-footer">
+                        <button type="button" class="action-button projEditarDesdeDetalhesBtn">Editar Projeto</button>
+                        <button type="button" class="action-button secondary projFecharDetalhesModalBtn">Fechar</button>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="projetoFormModal" class="form-modal-backdrop hidden">
+                <div class="form-modal-dialog">
+                    <div class="form-modal-header">
+                        <h5 class="form-modal-title" id="projetoFormModalTitle">Novo Projeto</h5>
+                        <button type="button" class="text-xl font-bold projFecharFormModalBtn">&times;</button>
+                    </div>
+                    <form id="projetoForm">
+                        <div class="form-modal-body">
+                            <input type="hidden" id="projetoFormId">
+                            <div class="form-grid">
+                                <div class="md:col-span-2"><label for="projetoFormNome">Nome do Projeto:</label><input type="text" id="projetoFormNome" required></div>
+                                <div><label for="projetoFormTipo">Tipo de Projeto:</label><input type="text" id="projetoFormTipo" placeholder="Ex: Desenvolvimento Interno"></div>
+                                <div><label for="projetoFormResponsavelPrincipal">Responsável Principal:</label><select id="projetoFormResponsavelPrincipal" required></select></div>
+                                <div><label for="projetoFormDataInicio">Data de Início:</label><input type="date" id="projetoFormDataInicio"></div>
+                                <div><label for="projetoFormDataPrazo">Prazo de Conclusão:</label><input type="date" id="projetoFormDataPrazo"></div>
+                                <div><label for="projetoFormOrcamento">Orçamento Previsto (€):</label><input type="number" id="projetoFormOrcamento" step="0.01" min="0"></div>
+                                <div><label for="projetoFormEstadoModal">Estado:</label>
+                                    <select id="projetoFormEstadoModal">
+                                        <option value="Planeado" selected>Planeado</option>
+                                        <option value="Em Curso">Em Curso</option>
+                                        <option value="Concluído">Concluído</option>
+                                        <option value="Suspenso">Suspenso</option>
+                                        <option value="Cancelado">Cancelado</option>
+                                    </select>
+                                </div>
+                                <div class="md:col-span-2"><label for="projetoFormDescricao">Descrição Detalhada:</label><textarea id="projetoFormDescricao" rows="4"></textarea></div>
+                                <div class="md:col-span-2">
+                                    <label for="projetoFormMembros">Membros da Equipa (selecione múltiplos):</label>
+                                    <select id="projetoFormMembros" multiple class="h-32"></select>
+                                    <p class="text-xs text-gray-500 mt-1">Use Ctrl/Cmd + Clique para selecionar múltiplos.</p>
+                                </div>
+                                <div><label for="projetoFormParque">Parque Associado (Opcional):</label><select id="projetoFormParque"><option value="">Nenhum</option></select></div>
+                            </div>
+                        </div>
+                        <div class="form-modal-footer">
+                            <button type="button" class="action-button secondary projFecharFormModalBtn">Cancelar</button>
+                            <button type="submit" class="action-button">Guardar Projeto</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/auth_global.js"></script>
+    <script src="js/projetos.js"></script>
+</body>
+</html>

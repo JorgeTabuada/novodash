@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarefas - Ferramentas Multipark</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #333; margin: 0; }
+        .subapp-page-container { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 1rem; box-sizing: border-box; }
+        .subapp-main-content { background-color: #f0f2f5; padding: 1rem; border-radius: 0.5rem; width: 100%; max-width: 1600px; /* Mais largo para Kanban/Calendário */ display: flex; flex-direction: column; align-items: center; margin-top: 1rem; margin-bottom: 2rem; }
+        .app-logo-styled { font-size: 1.75rem; font-weight: 700; color: #0A2B5C; margin-bottom: 1.5rem; text-align: center; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; width: 100%; }
+        .app-logo-styled .logo-p-icon { background-color: #0A2B5C; color: #fff; padding: 3px 9px; margin-right: 5px; border-radius: 4px; font-family: 'Arial Black', Gadget, sans-serif; font-size: 1.8rem; line-height: 1; }
+        .subapp-header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: #fff; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .subapp-title { font-size: 1.5rem; font-weight: 600; color: #0A2B5C; }
+        .subapp-section { width: 100%; background-color: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .subapp-section-title { font-size: 1.2rem; font-weight: 600; color: #333; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #eee; }
+        .filters-grid, .actions-container, .form-grid { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; align-items: flex-end; }
+        .filters-grid > div, .form-grid > div { display: flex; flex-direction: column; flex-grow: 1; min-width: 180px; }
+        .filters-grid label, .form-grid label { font-size: 0.875rem; margin-bottom: 0.25rem; color: #555; }
+        .filters-grid input[type="text"], .filters-grid input[type="date"],
+        .filters-grid select, .file-input, .form-grid input, .form-grid select, .form-grid textarea {
+            padding: 0.6rem; border: 1px solid #ccc; border-radius: 0.25rem; font-size: 0.9rem; background-color: #fff; width: 100%;
+        }
+        .action-button { background-color: #0d6efd; color: white; font-weight: 500; padding: 0.6rem 1.2rem; border-radius: 0.375rem; transition: background-color 0.2s; border: none; cursor: pointer; }
+        .action-button:hover { background-color: #0b5ed7; }
+        .action-button.secondary { background-color: #6c757d; }
+        .action-button.secondary:hover { background-color: #5a6268; }
+        .table-container { overflow-x: auto; margin-top: 1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 0.85em; }
+        th { background-color: #f8f9fa; font-weight: 600; color: #495057; }
+        .actions-cell button { margin-right: 5px; padding: 5px 8px; font-size:0.8em; }
+        .hidden { display: none !important; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #0d6efd; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Estilos Kanban */
+        .kanban-board-container { display: flex; gap: 1rem; overflow-x: auto; padding: 1rem 0; min-height: 400px; background-color: #f9fafb; border-radius: 0.375rem; }
+        .kanban-column { background-color: #e5e7eb; padding: 0.75rem; border-radius: 0.375rem; min-width: 280px; width: 280px; flex-shrink: 0; display: flex; flex-direction: column; }
+        .kanban-column-title { font-weight: 600; margin-bottom: 0.75rem; text-align: center; padding: 0.5rem; background-color: #d1d5db; border-radius: 0.25rem; color: #374151;}
+        .kanban-cards-container { flex-grow: 1; min-height: 200px; /* Para o drag placeholder */ }
+        .kanban-card { background-color: #fff; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.75rem; margin-bottom: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: grab; }
+        .kanban-card p { margin: 0 0 0.25rem 0; font-size: 0.9em; }
+        .kanban-card small { font-size: 0.75em; color: #6b7280; display: block; margin-top: 0.25rem; }
+        .kanban-card .prazo { font-weight: 500; }
+        .kanban-card.overdue .prazo, .task-row.overdue td { color: #ef4444; font-weight: bold; } /* Vermelho para atrasado */
+        .kanban-card.priority-alta { border-left: 4px solid #ef4444; } /* Vermelho */
+        .kanban-card.priority-media { border-left: 4px solid #f59e0b; } /* Amarelo */
+        .kanban-card.priority-baixa { border-left: 4px solid #22c55e; } /* Verde */
+
+        /* Estilos Calendário (Placeholder) */
+        .calendar-container { min-height: 500px; background-color: #fff; padding:1rem; border-radius: 0.375rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        /* Para FullCalendar, os estilos vêm da biblioteca, mas podes precisar de overrides */
+
+        /* Modal */
+        .form-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1050; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .form-modal-backdrop.active { opacity: 1; visibility: visible; }
+        .form-modal-dialog { background-color: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 100%; max-width: 700px; transform: translateY(-20px); transition: transform 0.3s ease; }
+        .form-modal-backdrop.active .form-modal-dialog { transform: translateY(0); }
+        .form-modal-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.75rem; margin-bottom: 1rem; border-bottom: 1px solid #eee; }
+        .form-modal-title { font-size: 1.25rem; font-weight: 600; }
+        .form-modal-body { max-height: 70vh; overflow-y: auto; padding-right: 10px; }
+        .form-modal-footer { padding-top: 1rem; margin-top: 1rem; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 0.75rem; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="subapp-page-container">
+        <div class="subapp-main-content">
+            <div class="app-logo-styled">
+                <span class="logo-p-icon">P</span><span class="logo-text-multipark">MULTIPARK</span>
+            </div>
+
+            <header class="subapp-header">
+                <h2 class="subapp-title">Gestão de Tarefas</h2>
+                <button id="voltarDashboardBtnTarefas" class="action-button secondary">Voltar ao Dashboard</button>
+            </header>
+
+            <section class="subapp-section">
+                <h3 class="subapp-section-title">Filtros e Visualização</h3>
+                <div class="filters-grid">
+                    <div>
+                        <label for="tarefaFiltroUser">Ver Tarefas de:</label>
+                        <select id="tarefaFiltroUser">
+                            <option value="minhas">Minhas Tarefas</option>
+                            <option value="todas_subordinados">Todas (Minhas e Subordinados)</option>
+                            {/* */}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="tarefaFiltroEstado">Estado:</label>
+                        <select id="tarefaFiltroEstado">
+                            <option value="">Todos</option>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Em Progresso">Em Progresso</option>
+                            <option value="Concluída">Concluída</option>
+                            <option value="Bloqueada">Bloqueada</option>
+                            <option value="Cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="tarefaFiltroPrioridade">Prioridade:</label>
+                        <select id="tarefaFiltroPrioridade">
+                            <option value="">Todas</option>
+                            <option value="Baixa">Baixa</option>
+                            <option value="Média">Média</option>
+                            <option value="Alta">Alta</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="tarefaFiltroPrazoDe">Prazo de:</label>
+                        <input type="date" id="tarefaFiltroPrazoDe">
+                    </div>
+                    <div>
+                        <label for="tarefaFiltroPrazoAte">Prazo até:</label>
+                        <input type="date" id="tarefaFiltroPrazoAte">
+                    </div>
+                    <button id="tarefaAplicarFiltrosBtn" class="action-button">Aplicar Filtros</button>
+                </div>
+                <div class="actions-container mt-4">
+                    <button id="tarefaNovaBtn" class="action-button">Nova Tarefa</button>
+                    <div class="ml-auto">
+                        <label for="tarefaViewMode" class="mr-2">Ver como:</label>
+                        <select id="tarefaViewMode" class="p-2 border rounded">
+                            <option value="lista">Lista</option>
+                            <option value="kanban">Kanban</option>
+                            <option value="calendario">Calendário</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="subapp-section">
+                <div id="loadingTarefasSpinner" class="loader hidden"></div>
+
+                {/* */}
+                <div id="tarefasViewLista" class="view-content">
+                    <h3 class="subapp-section-title">Lista de Tarefas</h3>
+                    <div class="table-container">
+                        <table id="tarefasTable">
+                            <thead>
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Atribuído A</th>
+                                    <th>Prioridade</th>
+                                    <th>Estado</th>
+                                    <th>Prazo</th>
+                                    <th>Projeto</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tarefasTableBody"></tbody>
+                        </table>
+                    </div>
+                    <p id="tarefasListaNenhumaMsg" class="content-placeholder hidden">Nenhuma tarefa encontrada.</p>
+                    <div id="tarefasListaPaginacao" class="mt-4 flex justify-center"></div>
+                </div>
+
+                {/* */}
+                <div id="tarefasViewKanban" class="view-content hidden">
+                    <h3 class="subapp-section-title">Quadro Kanban de Tarefas</h3>
+                    <div id="kanbanBoard" class="kanban-board-container">
+                        {/* */}
+                    </div>
+                </div>
+
+                {/* */}
+                <div id="tarefasViewCalendario" class="view-content hidden">
+                    <h3 class="subapp-section-title">Calendário de Tarefas</h3>
+                    <div id="calendarContainer" class="calendar-container content-placeholder">
+                        <p>(Integração de biblioteca de calendário aqui - Ex: FullCalendar)</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div id="tarefaFormModal" class="form-modal-backdrop hidden">
+        <div class="form-modal-dialog">
+            <div class="form-modal-header">
+                <h5 class="form-modal-title" id="tarefaFormModalTitle">Nova Tarefa</h5>
+                <button type="button" class="text-xl font-bold tarFecharModalBtn">&times;</button>
+            </div>
+            <form id="tarefaForm">
+                <div class="form-modal-body">
+                    <input type="hidden" id="tarefaFormId">
+                    <div class="form-grid">
+                        <div class="md:col-span-2">
+                            <label for="tarefaFormTitulo">Título:</label>
+                            <input type="text" id="tarefaFormTitulo" required>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="tarefaFormDescricao">Descrição:</label>
+                            <textarea id="tarefaFormDescricao" rows="3"></textarea>
+                        </div>
+                        <div>
+                            <label for="tarefaFormAtribuidoA">Atribuir A:</label>
+                            <select id="tarefaFormAtribuidoA" required>
+                                <option value="">Selecione Utilizador</option>
+                                {/* */}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="tarefaFormPrazo">Prazo:</label>
+                            <input type="datetime-local" id="tarefaFormPrazo">
+                        </div>
+                        <div>
+                            <label for="tarefaFormPrioridade">Prioridade:</label>
+                            <select id="tarefaFormPrioridade">
+                                <option value="Baixa">Baixa</option>
+                                <option value="Média" selected>Média</option>
+                                <option value="Alta">Alta</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="tarefaFormEstadoModal">Estado:</label>
+                            <select id="tarefaFormEstadoModal">
+                                <option value="Pendente" selected>Pendente</option>
+                                <option value="Em Progresso">Em Progresso</option>
+                                <option value="Concluída">Concluída</option>
+                                <option value="Bloqueada">Bloqueada</option>
+                                <option value="Cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="tarefaFormParque">Parque (Opcional):</label>
+                            <select id="tarefaFormParque"><option value="">Nenhum</option></select>
+                        </div>
+                        <div>
+                            <label for="tarefaFormProjetoModal">Projeto (Opcional):</label>
+                            <select id="tarefaFormProjetoModal"><option value="">Nenhum</option></select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <h4 class="text-md font-semibold mt-3 mb-1">Recorrência (Opcional)</h4>
+                        </div>
+                        <div>
+                            <label for="tarefaFormRecorrenciaTipo">Tipo de Recorrência:</label>
+                            <select id="tarefaFormRecorrenciaTipo">
+                                <option value="">Não Recorrente</option>
+                                <option value="diaria">Diária</option>
+                                <option value="semanal">Semanal</option>
+                                <option value="mensal">Mensal</option>
+                            </select>
+                        </div>
+                        <div id="recorrenciaConfigSemanal" class="md:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-2 hidden">
+                            <label class="col-span-full text-sm">Dias da Semana (para Semanal):</label>
+                            <div><input type="checkbox" id="recDiaSeg" value="1" class="mr-1"><label for="recDiaSeg" class="text-sm">Seg</label></div>
+                            <div><input type="checkbox" id="recDiaTer" value="2" class="mr-1"><label for="recDiaTer" class="text-sm">Ter</label></div>
+                            <div><input type="checkbox" id="recDiaQua" value="3" class="mr-1"><label for="recDiaQua" class="text-sm">Qua</label></div>
+                            <div><input type="checkbox" id="recDiaQui" value="4" class="mr-1"><label for="recDiaQui" class="text-sm">Qui</label></div>
+                            <div><input type="checkbox" id="recDiaSex" value="5" class="mr-1"><label for="recDiaSex" class="text-sm">Sex</label></div>
+                            <div><input type="checkbox" id="recDiaSab" value="6" class="mr-1"><label for="recDiaSab" class="text-sm">Sáb</label></div>
+                            <div><input type="checkbox" id="recDiaDom" value="0" class="mr-1"><label for="recDiaDom" class="text-sm">Dom</label></div>
+                        </div>
+                         <div id="recorrenciaConfigMensal" class="hidden">
+                            <label for="tarefaFormRecorrenciaDiaMes">Dia do Mês (1-31) (para Mensal):</label>
+                            <input type="number" id="tarefaFormRecorrenciaDiaMes" min="1" max="31">
+                        </div>
+
+                    </div>
+                </div>
+                <div class="form-modal-footer">
+                    <button type="button" class="action-button secondary tarFecharModalBtn">Cancelar</button>
+                    <button type="submit" class="action-button">Guardar Tarefa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/auth_global.js"></script>
+    <script src="js/tarefas.js"></script>
+</body>
+</html>

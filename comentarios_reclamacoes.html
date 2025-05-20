@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comentários e Reclamações - Ferramentas Multipark</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #333; margin: 0; }
+        .subapp-page-container { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 1rem; box-sizing: border-box; }
+        .subapp-main-content { background-color: #f0f2f5; padding: 1rem; border-radius: 0.5rem; width: 100%; max-width: 1600px; display: flex; flex-direction: column; align-items: center; margin-top: 1rem; margin-bottom: 2rem; }
+        .app-logo-styled { font-size: 1.75rem; font-weight: 700; color: #0A2B5C; margin-bottom: 1.5rem; text-align: center; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; width: 100%; }
+        .app-logo-styled .logo-p-icon { background-color: #0A2B5C; color: #fff; padding: 3px 9px; margin-right: 5px; border-radius: 4px; font-family: 'Arial Black', Gadget, sans-serif; font-size: 1.8rem; line-height: 1; }
+        .subapp-header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: #fff; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .subapp-title { font-size: 1.5rem; font-weight: 600; color: #0A2B5C; }
+        .subapp-section { width: 100%; background-color: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .subapp-section-title { font-size: 1.2rem; font-weight: 600; color: #333; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #eee; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+        .form-grid .col-span-full { grid-column: 1 / -1; }
+        .form-grid label, .filters-grid label { font-size: 0.875rem; margin-bottom: 0.25rem; color: #555; display: block;}
+        .form-grid input, .form-grid select, .form-grid textarea,
+        .filters-grid input, .filters-grid select, .file-input {
+            padding: 0.6rem; border: 1px solid #ccc; border-radius: 0.25rem; font-size: 0.9rem; background-color: #fff; width: 100%;
+        }
+        .actions-container { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem; justify-content: flex-start; }
+        .action-button { background-color: #0d6efd; color: white; font-weight: 500; padding: 0.6rem 1.2rem; border-radius: 0.375rem; transition: background-color 0.2s; border: none; cursor: pointer; }
+        .action-button:hover { background-color: #0b5ed7; }
+        .action-button.secondary { background-color: #6c757d; }
+        .action-button.secondary:hover { background-color: #5a6268; }
+        .action-button.danger { background-color: #dc3545; }
+        .action-button.danger:hover { background-color: #c82333; }
+        .table-container { overflow-x: auto; margin-top: 1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 0.85em; }
+        th { background-color: #f8f9fa; font-weight: 600; color: #495057; }
+        .hidden { display: none !important; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #0d6efd; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .document-list-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border-bottom: 1px solid #eee; }
+        .tab-nav { display: flex; border-bottom: 1px solid #ccc; margin-bottom: 1.5rem; }
+        .tab-button { padding: 0.75rem 1.25rem; cursor: pointer; border: none; background-color: transparent; border-bottom: 3px solid transparent; margin-bottom: -1px; font-weight: 500; color: #555; }
+        .tab-button.active { color: #0d6efd; border-bottom-color: #0d6efd; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .status-tag { padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; display: inline-block; }
+        /* Cores para estados de reclamação */
+        .status-reclam-aberta { background-color: #fef9c3; color: #854d0e; } /* Amarelo Claro */
+        .status-reclam-analise { background-color: #dbeafe; color: #1e40af; } /* Azul Claro */
+        .status-reclam-resolvida { background-color: #dcfce7; color: #166534; } /* Verde Claro */
+        .status-reclam-fechada { background-color: #e5e7eb; color: #4b5563; } /* Cinza Claro */
+
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="subapp-page-container">
+        <div class="subapp-main-content">
+            <div class="app-logo-styled">
+                <span class="logo-p-icon">P</span><span class="logo-text-multipark">MULTIPARK</span>
+            </div>
+
+            <header class="subapp-header">
+                <h2 class="subapp-title">Comentários e Reclamações</h2>
+                <button id="voltarDashboardBtnCR" class="action-button secondary">Voltar ao Dashboard</button>
+            </header>
+
+            <div class="w-full mb-6">
+                <nav class="tab-nav">
+                    <button class="tab-button active" data-tab="listaReclamacoes">Lista de Reclamações</button>
+                    <button class="tab-button" data-tab="novaReclamacao">Registar Nova Reclamação</button>
+                    {/* {/* Dashboard pode ser adicionado depois */}
+                </nav>
+            </div>
+
+            <div id="listaReclamacoesContent" class="tab-content active w-full">
+                <section class="subapp-section">
+                    <h3 class="subapp-section-title">Consultar Comentários e Reclamações</h3>
+                    <div class="filters-grid">
+                        <div><label for="crFiltroMatricula">Matrícula:</label><input type="text" id="crFiltroMatricula" placeholder="AA-00-BB"></div>
+                        <div><label for="crFiltroAlocation">Alocation:</label><input type="text" id="crFiltroAlocation"></div>
+                        <div><label for="crFiltroCliente">Nome Cliente:</label><input type="text" id="crFiltroCliente"></div>
+                        <div>
+                            <label for="crFiltroTipoReclamacao">Tipo de Reclamação:</label>
+                            <select id="crFiltroTipoReclamacao">
+                                <option value="">Todos</option>
+                                <option value="Danos/Avarias">Danos/Avarias</option>
+                                <option value="Tempo de Espera">Tempo de Espera</option>
+                                <option value="Serviço Extra">Serviço Extra</option>
+                                <option value="Sujidade">Sujidade</option>
+                                <option value="KMs Percorridos">KMs Percorridos</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="crFiltroEstado">Estado da Reclamação:</label>
+                            <select id="crFiltroEstado">
+                                <option value="">Todos</option>
+                                <option value="Aberta">Aberta</option>
+                                <option value="Em Análise">Em Análise</option>
+                                <option value="Pendente Resposta Cliente">Pendente Resposta Cliente</option>
+                                <option value="Resolvida - Procedente">Resolvida - Procedente</option>
+                                <option value="Resolvida - Improcedente">Resolvida - Improcedente</option>
+                                <option value="Fechada">Fechada</option>
+                            </select>
+                        </div>
+                        <button id="crAplicarFiltrosListaBtn" class="action-button">Filtrar</button>
+                    </div>
+                    <div id="loadingCRSpinner" class="loader hidden"></div>
+                    <div class="table-container mt-4">
+                        <table id="crReclamacoesTable">
+                            <thead>
+                                <tr>
+                                    <th>ID Reclamação</th>
+                                    <th>Data Registo</th>
+                                    <th>Matrícula</th>
+                                    <th>Cliente</th>
+                                    <th>Tipo</th>
+                                    <th>Estado</th>
+                                    <th>Responsável Reg.</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="crReclamacoesTableBody"></tbody>
+                        </table>
+                        <p id="crReclamacoesNenhumaMsg" class="content-placeholder">Nenhuma reclamação encontrada.</p>
+                    </div>
+                    <div id="crReclamacoesPaginacao" class="mt-4 flex justify-center"></div>
+                </section>
+            </div>
+
+            <div id="novaReclamacaoContent" class="tab-content w-full hidden">
+                <section class="subapp-section">
+                    <h3 class="subapp-section-title" id="crFormReclamacaoTitle">Registar Nova Reclamação/Comentário</h3>
+                    <form id="crNovaReclamacaoForm">
+                        <input type="hidden" id="crReclamacaoFormId">
+                        <div class="form-grid">
+                            <div><label for="crMatricula">Matrícula do Veículo:</label><input type="text" id="crMatricula" required></div>
+                            <div><label for="crAlocation">Alocation (Reserva):</label><input type="text" id="crAlocation" required></div>
+                            <button type="button" id="crBuscarDadosReservaBtn" class="action-button secondary self-end mb-1">Buscar Dados da Reserva</button>
+                            
+                            <div><label for="crNomeCliente">Nome do Cliente:</label><input type="text" id="crNomeCliente"></div>
+                            <div><label for="crContactoCliente">Contacto Cliente (Email/Telefone):</label><input type="text" id="crContactoCliente"></div>
+                            <div>
+                                <label for="crOrigemReclamacao">Origem da Reclamação:</label>
+                                <select id="crOrigemReclamacao"><option value="Email">Email</option><option value="Telefone">Telefone</option><option value="Presencial">Presencial</option><option value="Portal Cliente">Portal Cliente</option><option value="Outro">Outro</option></select>
+                            </div>
+                            <div><label for="crDataReclamacao">Data/Hora da Reclamação/Ocorrência:</label><input type="datetime-local" id="crDataReclamacao" required></div>
+                            <div>
+                                <label for="crTipoReclamacaoForm">Tipo de Reclamação:</label>
+                                <select id="crTipoReclamacaoForm" required>
+                                    <option value="">Selecione o Tipo</option>
+                                    <option value="Danos/Avarias">Danos/Avarias no Veículo</option>
+                                    <option value="Tempo de Espera">Tempo de Espera (Recolha/Entrega)</option>
+                                    <option value="Serviço Extra">Reclamação de Serviço Extra</option>
+                                    <option value="Sujidade">Sujidade no Veículo</option>
+                                    <option value="KMs Percorridos">Quilómetros Percorridos em Excesso</option>
+                                    <option value="Atendimento">Atendimento (Staff)</option>
+                                    <option value="Preco/Faturacao">Preço/Faturação</option>
+                                    <option value="Comentário Geral">Comentário Geral (Não é reclamação)</option>
+                                    <option value="Outro">Outro</option>
+                                </select>
+                            </div>
+                            <div class="col-span-full"><label for="crDescricaoReclamacao">Descrição Detalhada:</label><textarea id="crDescricaoReclamacao" rows="5" required placeholder="Descreva a situação, o que aconteceu, quando, quem estava envolvido (se souber)..."></textarea></div>
+                            <div><label for="crParqueOcorrencia">Parque da Ocorrência:</label><select id="crParqueOcorrencia"></select></div>
+                            
+                            <div class="col-span-full">
+                                <label for="crAnexoPrincipal">Anexar Email Principal / Foto (Opcional):</label>
+                                <input type="file" id="crAnexoPrincipal" class="file-input" accept=".pdf,.eml,.msg,.txt,.jpg,.png,.jpeg,.heic">
+                                <span id="crAnexoPrincipalNome" class="text-xs text-gray-500 mt-1"></span>
+                            </div>
+                            <div class="col-span-full">
+                                <label for="crFicheiroMovimentacoesVeiculo">Ficheiro de Movimentações do Veículo (Opcional, se não for buscar automático):</label>
+                                <input type="file" id="crFicheiroMovimentacoesVeiculo" class="file-input" accept=".csv,.xlsx">
+                                <span id="crFicheiroMovimentacoesVeiculoNome" class="text-xs text-gray-500 mt-1"></span>
+                            </div>
+                        </div>
+                        <div class="actions-container">
+                            <button type="submit" class="action-button">Registar Reclamação</button>
+                        </div>
+                        <div id="crNovaReclamacaoStatus" class="mt-4 text-sm"></div>
+                    </form>
+                </section>
+            </div>
+            
+            <div id="detalheReclamacaoContent" class="tab-content w-full hidden">
+                <section class="subapp-section">
+                    <div class="flex justify-between items-center">
+                        <h3 class="subapp-section-title" id="crDetalheReclamacaoTitle">Detalhes da Reclamação #<span id="crDetalheReclamacaoIdExibicao"></span></h3>
+                        <button type="button" id="crVoltarParaListaBtn" class="action-button secondary">Voltar à Lista</button>
+                    </div>
+                    <input type="hidden" id="crDetalheReclamacaoIdAtual">
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                        <div class="md:col-span-2">
+                            <h4 class="font-semibold text-gray-700">Informações da Reclamação:</h4>
+                            <p class="text-sm"><strong>Cliente:</strong> <span id="crDetalheClienteNome"></span> (<span id="crDetalheClienteContacto"></span>)</p>
+                            <p class="text-sm"><strong>Matrícula/Aloc.:</strong> <span id="crDetalheMatriculaAloc"></span></p>
+                            <p class="text-sm"><strong>Data Registo:</strong> <span id="crDetalheDataRegisto"></span></p>
+                            <p class="text-sm"><strong>Tipo:</strong> <span id="crDetalheTipoReclamacao" class="font-semibold"></span></p>
+                            <p class="text-sm"><strong>Descrição:</strong></p>
+                            <p class="text-xs bg-gray-50 p-2 rounded border whitespace-pre-wrap" id="crDetalheDescricaoCompleta"></p>
+                            <p class="text-sm mt-2"><strong>Estado Atual:</strong> <span id="crDetalheEstadoAtual" class="font-bold status-tag"></span></p>
+                            <p class="text-sm mt-1"><strong>Avaliação Obrigatória na Reserva?</strong> <span id="crDetalheAvaliacaoObrigatoria">A verificar...</span></p>
+                            <p class="text-sm mt-1"><strong>Ocorrências Associadas (Comportamento/Outras):</strong> <span id="crDetalheOcorrenciasAssociadas">A verificar...</span></p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-700">Anexos da Reclamação:</h4>
+                            <div id="crDetalheListaAnexos" class="space-y-1 text-sm max-h-48 overflow-y-auto border rounded p-2"></div>
+                            <div class="form-grid mt-2">
+                                <div><label for="crNovoAnexoTipo" class="text-xs">Tipo Anexo:</label><select id="crNovoAnexoTipo" class="!text-xs !p-1"><option value="Email Cliente">Email Cliente</option><option value="Email Resposta Enviada">Email Resposta</option><option value="Foto Dano">Foto Dano</option><option value="Outro">Outro</option></select></div>
+                                <div><label for="crNovoAnexoFicheiro" class="text-xs">Ficheiro:</label><input type="file" id="crNovoAnexoFicheiro" class="file-input !text-xs !p-1"></div>
+                                <button id="crAdicionarAnexoBtn" class="action-button text-xs !py-1 self-end">Adicionar Anexo</button>
+                            </div>
+                             <div id="crNovoAnexoStatus" class="mt-1 text-xs"></div>
+                        </div>
+                    </div>
+
+                    <h4 class="font-semibold text-gray-700 mt-6 border-t pt-4">Acompanhamento e Movimentações:</h4>
+                    <div id="loadingCRMovimentacoesSpinner" class="loader hidden"></div>
+                    <p class="text-sm mb-2">Movimentações do veículo <span class="font-bold" id="crDetalhePeriodoInvestigacao"></span>:</p>
+                    <div class="table-container max-h-60 overflow-y-auto">
+                        <table id="crMovimentacoesTable">
+                            <thead><tr><th>Data/Hora Mov.</th><th>Tipo Movimento</th><th>Condutor</th><th>Parque Orig/Dest</th><th>Obs.</th></tr></thead>
+                            <tbody id="crMovimentacoesTableBody"></tbody>
+                        </table>
+                        <p id="crMovimentacoesNenhumaMsg" class="content-placeholder hidden">Nenhuma movimentação encontrada.</p>
+                    </div>
+                    <div class="mt-4">
+                        <label for="crNotasAcompanhamento" class="block text-sm font-medium text-gray-700">Notas de Acompanhamento/Investigação:</label>
+                        <textarea id="crNotasAcompanhamento" rows="4" class="w-full p-2 border rounded" placeholder="Registe aqui os passos, contactos, decisões..."></textarea>
+                    </div>
+                    
+                    <h4 class="font-semibold text-gray-700 mt-6 border-t pt-4">Resolução do Caso:</h4>
+                    <div class="form-grid">
+                        <div>
+                            <label for="crEstadoResolucao">Alterar Estado da Reclamação:</label>
+                            <select id="crEstadoResolucao"></select> {/* Populado com os estados */}
+                        </div>
+                        <div class="col-span-full">
+                            <label for="crDetalhesResolucaoFinal">Detalhes da Resolução Aplicada:</label>
+                            <textarea id="crDetalhesResolucaoFinal" rows="3" placeholder="Ex: Contactado cliente, pedido de desculpas. Item não encontrado. Voucher XYPT oferecido."></textarea>
+                        </div>
+                    </div>
+                    <div class="actions-container">
+                        <button id="crGuardarProgressoBtn" class="action-button">Guardar Progresso/Resolução</button>
+                    </div>
+                    <div id="crDetalheReclamacaoStatus" class="mt-2 text-sm"></div>
+                </section>
+            </div>
+            
+            {/* Aba Análise/Dashboard de Reclamações (Pode ser adicionada depois) */}
+            {/* <div id="analiseReclamacoesContent" class="tab-content w-full hidden">...</div> */}
+
+        </div>
+    </div>
+
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/auth_global.js"></script>
+    <script src="js/comentarios_reclamacoes.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</body>
+</html>

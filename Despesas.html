@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Despesas - Ferramentas Multipark</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #333; margin: 0; }
+        .subapp-page-container { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 1rem; box-sizing: border-box; }
+        .subapp-main-content { background-color: #f0f2f5; padding: 1rem; border-radius: 0.5rem; width: 100%; max-width: 1400px; display: flex; flex-direction: column; align-items: center; margin-top: 1rem; margin-bottom: 2rem; }
+        .app-logo-styled { font-size: 1.75rem; font-weight: 700; color: #0A2B5C; margin-bottom: 1.5rem; text-align: center; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; width: 100%; }
+        .app-logo-styled .logo-p-icon { background-color: #0A2B5C; color: #fff; padding: 3px 9px; margin-right: 5px; border-radius: 4px; font-family: 'Arial Black', Gadget, sans-serif; font-size: 1.8rem; line-height: 1; }
+        .subapp-header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: #fff; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .subapp-title { font-size: 1.5rem; font-weight: 600; color: #0A2B5C; }
+        .subapp-section { width: 100%; background-color: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .subapp-section-title { font-size: 1.2rem; font-weight: 600; color: #333; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #eee; }
+        .filters-grid, .actions-container, .form-grid { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; align-items: flex-end; }
+        .filters-grid > div, .form-grid > div { display: flex; flex-direction: column; flex-grow: 1; min-width: 200px; /* Para melhor responsividade dos campos */ }
+        .filters-grid label, .form-grid label { font-size: 0.875rem; margin-bottom: 0.25rem; color: #555; }
+        .filters-grid input[type="text"], .filters-grid input[type="date"], .filters-grid input[type="number"],
+        .filters-grid select, .file-input, .form-grid input, .form-grid select, .form-grid textarea {
+            padding: 0.6rem; border: 1px solid #ccc; border-radius: 0.25rem; font-size: 0.9rem; background-color: #fff; width: 100%;
+        }
+        .action-button { background-color: #0d6efd; color: white; font-weight: 500; padding: 0.6rem 1.2rem; border-radius: 0.375rem; transition: background-color 0.2s; border: none; cursor: pointer; }
+        .action-button:hover { background-color: #0b5ed7; }
+        .action-button.secondary { background-color: #6c757d; }
+        .action-button.secondary:hover { background-color: #5a6268; }
+        .table-container { overflow-x: auto; margin-top: 1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 0.85em; }
+        th { background-color: #f8f9fa; font-weight: 600; color: #495057; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card { background-color: #fffbeb; padding: 1.25rem; border-radius: 0.375rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #f59e0b; } /* Cor Amarela para despesas */
+        .stat-card h4 { font-weight: 600; color: #b45309; margin-bottom: 0.5rem; font-size: 0.95rem; }
+        .stat-card p.stat-value { font-size: 1.75rem; font-weight: 700; color: #d97706; }
+        .stat-card div.stat-subtext { font-size: 0.85rem; font-weight: normal; color: #555; }
+        .hidden { display: none !important; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #0d6efd; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="subapp-page-container">
+        <div class="subapp-main-content">
+            <div class="app-logo-styled">
+                <span class="logo-p-icon">P</span><span class="logo-text-multipark">MULTIPARK</span>
+            </div>
+
+            <header class="subapp-header">
+                <h2 class="subapp-title">Gestão de Despesas</h2>
+                <button id="voltarDashboardBtnDespesas" class="action-button secondary">Voltar ao Dashboard</button>
+            </header>
+
+            <section class="subapp-section">
+                <h3 class="subapp-section-title">Registar Nova Despesa</h3>
+                <form id="despesaForm" class="form-grid">
+                    <input type="hidden" id="despesaFormId"> <div>
+                        <label for="despesaData">Data e Hora da Despesa:</label>
+                        <input type="datetime-local" id="despesaData" required>
+                    </div>
+                    <div>
+                        <label for="despesaValor">Valor (€):</label>
+                        <input type="number" id="despesaValor" step="0.01" min="0.01" required placeholder="Ex: 25.50">
+                    </div>
+                    <div>
+                        <label for="despesaParque">Parque:</label>
+                        <select id="despesaParque" required>
+                            <option value="">Selecione o Parque</option>
+                            {/* */}
+                        </select>
+                    </div>
+                     <div>
+                        <label for="despesaTipo">Tipo de Despesa:</label>
+                        <select id="despesaTipo" required>
+                            <option value="">Selecione o Tipo</option>
+                            <option value="Combustível">Combustível</option>
+                            <option value="Material Escritório">Material Escritório</option>
+                            <option value="Manutenção Veicular">Manutenção Veicular</option>
+                            <option value="Refeições">Refeições</option>
+                            <option value="Portagens">Portagens</option>
+                            <option value="Deslocações (Outras)">Deslocações (Outras)</option>
+                            <option value="Marketing e Publicidade">Marketing e Publicidade</option>
+                            <option value="Limpeza">Limpeza</option>
+                            <option value="Comunicações">Comunicações (Telefone, Internet)</option>
+                            <option value="Formação">Formação</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2"> {/* Ocupa duas colunas em telas médias ou maiores */}
+                        <label for="despesaDescricao">Descrição / Motivo:</label>
+                        <textarea id="despesaDescricao" rows="3" required placeholder="Detalhes da despesa..."></textarea>
+                    </div>
+                    <div>
+                        <label for="despesaProjeto">Associar a Projeto (Opcional):</label>
+                        <select id="despesaProjeto">
+                            <option value="">Nenhum Projeto</option>
+                            {/* */}
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="despesaComprovativo">Comprovativo (Opcional):</label>
+                        <input type="file" id="despesaComprovativo" class="file-input">
+                        <span id="despesaComprovativoNome" class="text-xs text-gray-500 mt-1"></span>
+                    </div>
+                    <div class="actions-container md:col-span-2 justify-end">
+                        <button type="button" id="despesaLimparFormBtn" class="action-button secondary">Limpar</button>
+                        <button type="submit" class="action-button">Guardar Despesa</button>
+                    </div>
+                </form>
+                <div id="despesaFormStatus" class="mt-4 text-sm"></div>
+            </section>
+
+            <section class="subapp-section">
+                <h3 class="subapp-section-title">Dashboard de Despesas</h3>
+                <div class="filters-grid mb-6">
+                    <div><label for="despDashboardFiltroDataInicio">De:</label><input type="date" id="despDashboardFiltroDataInicio"></div>
+                    <div><label for="despDashboardFiltroDataFim">Até:</label><input type="date" id="despDashboardFiltroDataFim"></div>
+                    <div><label for="despDashboardFiltroPeriodo">Período:</label>
+                        <select id="despDashboardFiltroPeriodo">
+                            <option value="personalizado">Personalizado</option>
+                            <option value="hoje">Hoje</option>
+                            <option value="semana_atual">Esta Semana</option>
+                            <option value="mes_atual" selected>Este Mês</option>
+                            <option value="este_ano">Este Ano</option>
+                        </select>
+                    </div>
+                    <div><label for="despDashboardFiltroTipo">Tipo:</label><select id="despDashboardFiltroTipo"><option value="">Todos</option></select></div>
+                    <div><label for="despDashboardFiltroParque">Parque:</label><select id="despDashboardFiltroParque"><option value="">Todos</option></select></div>
+                    <div><label for="despDashboardFiltroProjeto">Projeto:</label><select id="despDashboardFiltroProjeto"><option value="">Todos</option></select></div>
+                    <div><label for="despDashboardFiltroUser">Utilizador:</label><select id="despDashboardFiltroUser"><option value="">Todos</option></select></div>
+                    <button id="despAplicarFiltrosDashboardBtn" class="action-button">Analisar</button>
+                </div>
+
+                <div id="despesasDashboardStats" class="stats-grid">
+                    <div class="stat-card"><h4>Total Despesas</h4><p id="statTotalDespesas" class="stat-value">0,00 €</p><div id="statTotalDespesasPeriodo" class="stat-subtext">N/A</div></div>
+                    <div class="stat-card"><h4>Nº de Registos</h4><p id="statNumRegistosDespesas" class="stat-value">0</p><div id="statNumRegistosDespesasPeriodo" class="stat-subtext">N/A</div></div>
+                    <div class="stat-card"><h4>Despesa Média</h4><p id="statMediaDespesa" class="stat-value">0,00 €</p><div id="statMediaDespesaPeriodo" class="stat-subtext">N/A</div></div>
+                </div>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div class="subapp-section p-4 rounded-lg shadow-md">
+                        <h4 class="subapp-section-title text-center">Despesas por Tipo/Categoria</h4>
+                        <canvas id="chartDespesasPorTipo" height="250"></canvas>
+                    </div>
+                    <div class="subapp-section p-4 rounded-lg shadow-md">
+                         <h4 class="subapp-section-title text-center">Despesas por Parque/Cidade</h4>
+                        <canvas id="chartDespesasPorParque" height="250"></canvas>
+                    </div>
+                </div>
+                 <div class="subapp-section p-4 rounded-lg shadow-md mt-6">
+                    <h4 class="subapp-section-title text-center">Evolução Mensal de Despesas (Últimos 12 Meses)</h4>
+                    <canvas id="chartEvolucaoDespesasMensal" height="200"></canvas>
+                </div>
+            </section>
+
+            <section class="subapp-section">
+                <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+                    <h3 class="subapp-section-title !mb-0 flex-grow">Histórico de Despesas</h3>
+                    <div class="actions-container !mb-0">
+                        <button id="despExportarListaBtn" class="action-button secondary">Exportar Lista (CSV)</button>
+                    </div>
+                </div>
+                {/* */}
+                <div id="loadingDespesasTableSpinner" class="loader hidden"></div>
+                <div class="table-container">
+                    <table id="despesasTable">
+                        <thead>
+                            <tr>
+                                <th>Data Despesa</th>
+                                <th>Utilizador Reg.</th>
+                                <th>Valor (€)</th>
+                                <th>Tipo</th>
+                                <th>Parque</th>
+                                <th>Descrição</th>
+                                <th>Projeto</th>
+                                <th>Comprovativo</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="despesasTableBody"></tbody>
+                    </table>
+                </div>
+                <p id="despesasNenhumaMsg" class="content-placeholder hidden">Nenhuma despesa encontrada com os filtros atuais.</p>
+                <div id="despesasPaginacao" class="mt-4 flex justify-center"></div>
+            </section>
+        </div>
+    </div>
+
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/auth_global.js"></script>
+    <script src="js/despesas.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</body>
+</html>
