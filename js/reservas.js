@@ -20,49 +20,74 @@ document.addEventListener("DOMContentLoaded", async () => {
     let userProfile = null;
 
     // --- Seletores de Elementos DOM ---
-    const fileImportacaoEl = document.getElementById("fileImportacao");
-    const fileImportacaoLabelEl = document.getElementById("fileImportacaoLabel");
-    const btnProcessarFicheiroEl = document.getElementById("btnProcessarFicheiro");
+    const importReservasFileEl = document.getElementById("importReservasFile");
+    const resProcessarImportacaoBtnEl = document.getElementById("resProcessarImportacaoBtn");
     const importacaoStatusEl = document.getElementById("importacaoStatus");
+    const loadingImportSpinnerEl = document.getElementById("loadingImportSpinner");
 
-    const dataInicioEl = document.getElementById("dataInicio");
-    const dataFimEl = document.getElementById("dataFim");
-    const periodoRapidoEl = document.getElementById("periodoRapido");
-    const btnAnalisarEl = document.getElementById("btnAnalisar");
+    const resDashboardFiltroDataInicioEl = document.getElementById("resDashboardFiltroDataInicio");
+    const resDashboardFiltroDataFimEl = document.getElementById("resDashboardFiltroDataFim");
+    const resDashboardFiltroPeriodoEl = document.getElementById("resDashboardFiltroPeriodo");
+    const resAplicarFiltrosDashboardBtnEl = document.getElementById("resAplicarFiltrosDashboardBtn");
 
-    const totalReservasEl = document.getElementById("totalReservas");
-    const totalReservasComparacaoEl = document.getElementById("totalReservasComparacao");
-    const valorTotalEstimadoEl = document.getElementById("valorTotalEstimado");
-    const valorTotalEstimadoComparacaoEl = document.getElementById("valorTotalEstimadoComparacao");
-    const reservasPorCampanhaEl = document.getElementById("reservasPorCampanha");
-    const reservasPorDiaSemanaEl = document.getElementById("reservasPorDiaSemana");
-    const dataReservasPorHoraEl = document.getElementById("dataReservasPorHora");
+    const statTotalReservasEl = document.getElementById("statTotalReservas");
+    const statTotalReservasPeriodoEl = document.getElementById("statTotalReservasPeriodo");
+    const statValorTotalReservasEl = document.getElementById("statValorTotalReservas");
+    const statValorTotalReservasPeriodoEl = document.getElementById("statValorTotalReservasPeriodo");
+    const statReservasCampanhaEl = document.getElementById("statReservasCampanha");
+    const statReservasDiaSemanaEl = document.getElementById("statReservasDiaSemana");
+    const resDashboardDataHoraInputEl = document.getElementById("resDashboardDataHoraInput");
+    const resDashboardDataHoraDisplayEl = document.getElementById("resDashboardDataHoraDisplay");
+    const calendarioReservasContainerEl = document.getElementById("calendarioReservasContainer");
+    const chartReservasPorHoraEl = document.getElementById("chartReservasPorHora");
+    const chartReservasMensalEl = document.getElementById("chartReservasMensal");
+    const statReservasHoraConteudoEl = document.getElementById("statReservasHoraConteudo");
+
+
+    const resSearchTermEl = document.getElementById("resSearchTerm");
+    const resSearchBtnEl = document.getElementById("resSearchBtn");
+
+    const resAbrirModalNovaBtnEl = document.getElementById("resAbrirModalNovaBtn");
+    const resExportarBtnEl = document.getElementById("resExportarBtn");
+
+    const resFiltroClienteListaEl = document.getElementById("resFiltroClienteLista");
+    const resFiltroMatriculaListaEl = document.getElementById("resFiltroMatriculaLista");
+    const resFiltroDataEntradaListaEl = document.getElementById("resFiltroDataEntradaLista");
+    const resFiltroEstadoListaEl = document.getElementById("resFiltroEstadoLista");
+    const resAplicarFiltrosListaBtnEl = document.getElementById("resAplicarFiltrosListaBtn");
+    const reservasTableBodyEl = document.getElementById("reservasTableBody");
+    const reservasNenhumaMsgEl = document.getElementById("reservasNenhumaMsg");
+    const reservasPaginacaoEl = document.getElementById("reservasPaginacao");
+    const loadingTableSpinnerEl = document.getElementById("loadingTableSpinner"); // Presumindo que existe um spinner para a tabela
+
+    const reservaFormModalEl = document.getElementById("reservaFormModal");
+    const reservaFormModalTitleEl = document.getElementById("reservaFormModalTitle");
+    const reservaFormEl = document.getElementById("reservaForm");
+    const reservaFormIdEl = document.getElementById("reservaFormId"); 
+    const resFecharModalBtns = document.querySelectorAll(".resFecharModalBtn");
     
-    const graficoReservasPorHoraEl = document.getElementById("graficoReservasPorHora");
-    const graficoDistribuicaoMensalEl = document.getElementById("graficoDistribuicaoMensal");
+    const reservaLogModalEl = document.getElementById("reservaLogModal");
+    const logReservaBookingIdEl = document.getElementById("logReservaBookingId");
+    const reservaLogTableBodyEl = document.getElementById("reservaLogTableBody");
+    const reservaLogNenhumaMsgEl = document.getElementById("reservaLogNenhumaMsg");
+    const resFecharLogModalBtns = document.querySelectorAll(".resFecharLogModalBtn");
 
-    const pesquisaReservaEl = document.getElementById("pesquisaReserva");
-    const btnExportarReservasEl = document.getElementById("btnExportarReservas");
-    const tabelaReservasEl = document.getElementById("tabelaReservas");
-    const totalRegistrosEl = document.getElementById("totalRegistros");
-    const btnPaginaAnteriorEl = document.getElementById("btnPaginaAnterior");
-    const paginaAtualEl = document.getElementById("paginaAtual");
-    const btnProximaPaginaEl = document.getElementById("btnProximaPagina");
+    const voltarDashboardBtnReservasEl = document.getElementById("voltarDashboardBtnReservas");
 
-    const modalDetalhesReservaEl = document.getElementById("modalDetalhesReserva");
-    const btnFecharModalEl = document.getElementById("btnFecharModal");
-    const conteudoDetalhesReservaEl = document.getElementById("conteudoDetalhesReserva");
-    const btnCancelarReservaEl = document.getElementById("btnCancelarReserva");
-    const btnEditarReservaEl = document.getElementById("btnEditarReserva");
-    const btnFecharDetalhesEl = document.getElementById("btnFecharDetalhes");
 
-    const modalEditarReservaEl = document.getElementById("modalEditarReserva");
-    const btnFecharModalEdicaoEl = document.getElementById("btnFecharModalEdicao");
-    const formEditarReservaEl = document.getElementById("formEditarReserva");
-    const editReservaIdEl = document.getElementById("editReservaId");
-    const btnCancelarEdicaoEl = document.getElementById("btnCancelarEdicao");
+    // Mapeamento dos campos do formulário para chaves de dados (simplificado)
+    // Os IDs no HTML devem corresponder a estes (ex: id="reservaFormBookingId")
+    const formFieldsIds = {
+        booking_id: "reservaFormBookingId", data_reserva: "reservaFormDataReserva",
+        nome_cliente: "reservaFormNomeCliente", email_cliente: "reservaFormEmailCliente",
+        telefone_cliente: "reservaFormTelefoneCliente", matricula: "reservaFormMatricula",
+        alocation: "reservaFormAlocation", check_in_datetime: "reservaFormDataEntrada",
+        check_out_datetime: "reservaFormDataSaida", physical_park_name: "reservaFormParque", // Assumindo que este é o ID do select do parque
+        campaign_name: "reservaFormCampanha", total_price: "reservaFormValor",
+        estado_reserva: "reservaFormEstado", observacoes: "reservaFormObservacoes"
+        // Adicionar outros campos do schema_final.md aqui se estiverem no formulário
+    };
 
-    const btnVoltarDashboardEl = document.getElementById("btnVoltarDashboard");
 
     // --- Estado da Aplicação ---
     let todasAsReservasGeral = []; 
@@ -71,6 +96,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let totalReservasNaBD = 0;
     let graficoReservasHora, graficoReservasMensal;
 
+
     // --- Funções Utilitárias ---
     function formatarDataHora(dataISO) {
         if (!dataISO) return "N/A";
@@ -78,7 +104,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             return new Date(dataISO).toLocaleString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
         } catch (e) { return dataISO; }
     }
-    
     function formatarDataParaInput(dataISO) {
         if (!dataISO) return "";
         try {
@@ -92,55 +117,28 @@ document.addEventListener("DOMContentLoaded", async () => {
             return `${year}-${month}-${day}T${hours}:${minutes}`;
         } catch (e) { return ""; }
     }
-    
     function formatarMoeda(valor) {
         if (valor === null || valor === undefined || isNaN(parseFloat(valor))) return "0,00 €";
         return parseFloat(valor).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
     }
-    
     function mostrarSpinner(elementId) { 
         const el = document.getElementById(elementId);
         if (el) el.classList.remove("hidden"); 
     }
-    
     function esconderSpinner(elementId) { 
         const el = document.getElementById(elementId);
         if (el) el.classList.add("hidden");
     }
     
-    // Função para normalizar matrículas
-    function normalizarMatricula(matricula) {
-        if (!matricula) return "";
-        
-        // Remove espaços, hífens e converte para maiúsculas
-        let normalizada = matricula.toString().toUpperCase().replace(/[\s\-]/g, "");
-        
-        // Formato padrão português: XX-XX-XX ou XX-XX-XX
-        if (/^[A-Z0-9]{2,}[A-Z0-9]{2,}[A-Z0-9]{2,}$/.test(normalizada)) {
-            // Adiciona hífens se não existirem
-            if (normalizada.length === 6) {
-                normalizada = normalizada.substring(0, 2) + "-" + 
-                             normalizada.substring(2, 4) + "-" + 
-                             normalizada.substring(4, 6);
-            } else if (normalizada.length >= 8) {
-                // Para matrículas mais recentes ou estrangeiras, tenta formatar se possível
-                normalizada = normalizada.substring(0, 2) + "-" + 
-                             normalizada.substring(2, 4) + "-" + 
-                             normalizada.substring(4, 6);
-            }
-        }
-        
-        return normalizada;
-    }
-    
     // --- Lógica de Carregamento de Reservas (READ) ---
     async function carregarReservasDaLista(pagina = 1, filtros = {}) {
-        if (!tabelaReservasEl) {
+        if (!reservasTableBodyEl) {
             console.error("Elemento da tabela de reservas (tbody) não encontrado.");
             return;
         }
-        
-        tabelaReservasEl.innerHTML = "<tr><td colspan='7' class='py-4 text-center text-gray-500'>Carregando reservas...</td></tr>"; 
+        mostrarSpinner("loadingTableSpinner"); // Usar um ID de spinner específico se houver
+        reservasTableBodyEl.innerHTML = ""; 
+        if(reservasNenhumaMsgEl) reservasNenhumaMsgEl.classList.add("hidden");
 
         const rangeFrom = (pagina - 1) * itensPorPaginaLista;
         const rangeTo = rangeFrom + itensPorPaginaLista - 1;
@@ -163,8 +161,8 @@ document.addEventListener("DOMContentLoaded", async () => {
              query = query.ilike("matricula", `%${filtros.matricula}%`);
         }
 
-        // Correção: usar created_at_db em vez de created_at
-        query = query.order("created_at_db", { ascending: false }).range(rangeFrom, rangeTo);
+
+        query = query.order("created_at", { ascending: false }).range(rangeFrom, rangeTo);
 
         try {
             const { data, error, count } = await query;
@@ -175,7 +173,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             totalReservasNaBD = count;    // Total de registos que correspondem aos filtros
 
             if (data && data.length > 0) {
-                tabelaReservasEl.innerHTML = "";
                 data.forEach(reserva => {
                     const tr = document.createElement("tr");
                     tr.className = "border-b hover:bg-gray-50";
@@ -197,26 +194,25 @@ document.addEventListener("DOMContentLoaded", async () => {
                             <button class="text-gray-600 hover:text-gray-800 log-reserva-btn ml-2" data-booking-id="${reserva.booking_id || reserva.id}" data-reserva-pk="${reserva.id}">Hist.</button>
                         </td>
                     `;
-                    tabelaReservasEl.appendChild(tr);
+                    reservasTableBodyEl.appendChild(tr);
                 });
                 configurarBotoesAcao();
-                
-                if (totalRegistrosEl) {
-                    totalRegistrosEl.textContent = count;
-                }
-                
-                atualizarPaginacao(pagina, count);
             } else {
-                tabelaReservasEl.innerHTML = "<tr><td colspan='7' class='py-4 text-center text-gray-500'>Nenhuma reserva encontrada com os filtros atuais.</td></tr>";
-                if (totalRegistrosEl) {
-                    totalRegistrosEl.textContent = "0";
+                if(reservasNenhumaMsgEl) {
+                    reservasNenhumaMsgEl.textContent = "Nenhuma reserva encontrada com os filtros atuais.";
+                    reservasNenhumaMsgEl.classList.remove("hidden");
                 }
             }
-            
-            atualizarEstatisticas();
+            atualizarPaginacaoLista(pagina, count);
+            atualizarDashboardStatsGeral(); // Atualizar estatísticas gerais do dashboard
         } catch (error) {
             console.error("Erro ao carregar reservas:", error);
-            tabelaReservasEl.innerHTML = "<tr><td colspan='7' class='py-4 text-center text-red-500'>Erro ao carregar dados. Tente novamente.</td></tr>";
+            if(reservasNenhumaMsgEl) {
+                reservasNenhumaMsgEl.textContent = "Erro ao carregar dados. Tente novamente.";
+                reservasNenhumaMsgEl.classList.remove("hidden");
+            }
+        } finally {
+            esconderSpinner("loadingTableSpinner");
         }
     }
     
@@ -233,537 +229,858 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // --- Lógica de Paginação ---
-    function atualizarPaginacao(paginaCorrente, totalItens) {
-        if (!btnPaginaAnteriorEl || !paginaAtualEl || !btnProximaPaginaEl) return;
-        
+    function atualizarPaginacaoLista(paginaCorrente, totalItens) {
+        if (!reservasPaginacaoEl) return;
+        reservasPaginacaoEl.innerHTML = ""; 
+        if (totalItens === 0) return;
+
         const totalPaginas = Math.ceil(totalItens / itensPorPaginaLista);
-        
-        btnPaginaAnteriorEl.disabled = paginaCorrente <= 1;
-        btnProximaPaginaEl.disabled = paginaCorrente >= totalPaginas;
-        
-        paginaAtualEl.textContent = `Página ${paginaCorrente} de ${totalPaginas || 1}`;
-        
-        btnPaginaAnteriorEl.onclick = () => {
-            if (paginaCorrente > 1) {
-                carregarReservasDaLista(paginaCorrente - 1, obterFiltrosAtuais());
-            }
+        if (totalPaginas <= 1) return;
+
+        const criarBotao = (texto, pagina, desabilitado = false, ativo = false) => {
+            const btn = document.createElement("button");
+            btn.innerHTML = texto;
+            btn.className = `px-3 py-1 text-sm rounded-md border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed mx-0.5 ${ativo ? "bg-blue-500 text-white border-blue-500" : ""}`;
+            btn.disabled = desabilitado;
+            btn.addEventListener("click", () => carregarReservasDaLista(pagina, obterFiltrosAtuaisLista()));
+            return btn;
         };
-        
-        btnProximaPaginaEl.onclick = () => {
-            if (paginaCorrente < totalPaginas) {
-                carregarReservasDaLista(paginaCorrente + 1, obterFiltrosAtuais());
+
+        reservasPaginacaoEl.appendChild(criarBotao("&laquo; Ant", paginaCorrente - 1, paginaCorrente === 1));
+
+        // Lógica simplificada para mostrar algumas páginas
+        let paginasAMostrar = [1, totalPaginas];
+        for (let i = Math.max(2, paginaCorrente - 2); i <= Math.min(totalPaginas - 1, paginaCorrente + 2); i++) {
+            if (!paginasAMostrar.includes(i)) paginasAMostrar.push(i);
+        }
+        paginasAMostrar.sort((a,b) => a-b);
+
+        let ultimaPaginaMostrada = 0;
+        paginasAMostrar.forEach(p => {
+            if (ultimaPaginaMostrada > 0 && p > ultimaPaginaMostrada + 1) {
+                const span = document.createElement("span");
+                span.textContent = "...";
+                span.className = "px-2 py-1 text-sm";
+                reservasPaginacaoEl.appendChild(span);
             }
-        };
+            reservasPaginacaoEl.appendChild(criarBotao(p, p, p === paginaCorrente, p === paginaCorrente));
+            ultimaPaginaMostrada = p;
+        });
+        
+        reservasPaginacaoEl.appendChild(criarBotao("Próx &raquo;", paginaCorrente + 1, paginaCorrente === totalPaginas));
     }
     
-    function obterFiltrosAtuais() {
+    function obterFiltrosAtuaisLista() {
         const filtros = {};
-        if (pesquisaReservaEl && pesquisaReservaEl.value) {
-            filtros.searchTerm = pesquisaReservaEl.value.trim();
-        }
+        if (resSearchTermEl && resSearchTermEl.value) filtros.searchTerm = resSearchTermEl.value.trim();
+        if (resFiltroEstadoListaEl && resFiltroEstadoListaEl.value) filtros.estado_reserva = resFiltroEstadoListaEl.value;
+        if (resFiltroDataEntradaListaEl && resFiltroDataEntradaListaEl.value) filtros.data_entrada_prevista = resFiltroDataEntradaListaEl.value;
+        if (resFiltroClienteListaEl && resFiltroClienteListaEl.value) filtros.cliente = resFiltroClienteListaEl.value.trim();
+        if (resFiltroMatriculaListaEl && resFiltroMatriculaListaEl.value) filtros.matricula = resFiltroMatriculaListaEl.value.trim();
         return filtros;
     }
 
-    // --- Lógica de Processamento de Ficheiros Excel ---
-    function processarFicheiroImportacao() {
-        if (!fileImportacaoEl || !fileImportacaoEl.files || fileImportacaoEl.files.length === 0) {
-            if (importacaoStatusEl) {
-                importacaoStatusEl.textContent = "Por favor, selecione um ficheiro para importar.";
+    // --- Lógica de Criação e Edição de Reservas (CREATE/UPDATE) ---
+    function abrirModalReserva(reserva = null) {
+        if (!reservaFormModalEl || !reservaFormEl || !reservaFormIdEl || !reservaFormModalTitleEl) return;
+        reservaFormEl.reset(); 
+        reservaFormIdEl.value = ""; 
+
+        if (reserva) {
+            reservaFormModalTitleEl.textContent = "Editar Reserva";
+            reservaFormIdEl.value = reserva.id; 
+            
+            for (const key in formFieldsIds) {
+                const elementId = formFieldsIds[key];
+                const inputElement = document.getElementById(elementId);
+                if (inputElement && reserva[key] !== undefined) {
+                    if (inputElement.type === "datetime-local") {
+                        inputElement.value = formatarDataParaInput(reserva[key]);
+                    } else if (inputElement.type === "checkbox") {
+                        inputElement.checked = !!reserva[key];
+                    } else {
+                        inputElement.value = reserva[key] === null ? "" : reserva[key];
+                    }
+                }
             }
+            // Campos que podem precisar de tratamento especial ou não estão no formFieldsIds
+            if(document.getElementById("reservaFormParque") && reserva.physical_park_name) document.getElementById("reservaFormParque").value = reserva.physical_park_name;
+            if(document.getElementById("reservaFormValor") && reserva.total_price !== null) document.getElementById("reservaFormValor").value = reserva.total_price;
+
+
+        } else {
+            reservaFormModalTitleEl.textContent = "Nova Reserva";
+            if(document.getElementById(formFieldsIds.data_reserva)) document.getElementById(formFieldsIds.data_reserva).value = formatarDataParaInput(new Date().toISOString());
+            if(document.getElementById(formFieldsIds.estado_reserva)) document.getElementById(formFieldsIds.estado_reserva).value = "Confirmada";
+        }
+        reservaFormModalEl.classList.add("active");
+        reservaFormModalEl.classList.remove("hidden");
+    }
+
+    function fecharModalReserva() {
+        if(reservaFormModalEl) {
+            reservaFormModalEl.classList.remove("active");
+            reservaFormModalEl.classList.add("hidden");
+        }
+    }
+
+    async function submeterFormularioReserva(event) {
+        event.preventDefault();
+        if (!currentUser || !supabase) {
+            alert("Não autenticado ou cliente Supabase não disponível.");
             return;
         }
 
-        const file = fileImportacaoEl.files[0];
-        if (importacaoStatusEl) {
-            importacaoStatusEl.textContent = `A processar ficheiro: ${file.name}`;
-        }
+        const idReserva = reservaFormIdEl ? reservaFormIdEl.value : null;
+        const dadosFormulario = {};
 
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            try {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-                if (jsonData.length === 0) {
-                    if (importacaoStatusEl) {
-                        importacaoStatusEl.textContent = "O ficheiro não contém dados.";
+        for (const key in formFieldsIds) {
+            const element = document.getElementById(formFieldsIds[key]);
+            if (element) {
+                if (element.type === "checkbox") {
+                    dadosFormulario[key] = element.checked;
+                } else if (element.value !== "") {
+                    if (["total_price", "parking_price", "delivery_price"].includes(key)) { // Adicionar outros campos numéricos aqui
+                        dadosFormulario[key] = parseFloat(element.value) || null;
+                    } else if (element.type === 'datetime-local' && element.value) {
+                        dadosFormulario[key] = new Date(element.value).toISOString();
                     }
-                    return;
-                }
-
-                // Mapear dados do Excel para o formato da tabela reservas
-                let reservasParaUpsert = jsonData.map(row => {
-                    // Normalizar matrícula
-                    const matriculaNormalizada = normalizarMatricula(row.matricula || row.Matricula || row.MATRICULA);
-                    
-                    // Criar objeto com os campos necessários
-                    const reserva = {
-                        matricula: matriculaNormalizada,
-                        nome_cliente: row.nome_cliente || row.Nome || row["Nome Cliente"] || "",
-                        email_cliente: row.email_cliente || row.Email || row["Email Cliente"] || "",
-                        telefone_cliente: row.telefone_cliente || row.Telefone || row["Telefone Cliente"] || "",
-                        check_in_datetime: row.check_in_datetime || row["Data Entrada"] || row["Check-in"] || null,
-                        check_out_datetime: row.check_out_datetime || row["Data Saída"] || row["Check-out"] || null,
-                        estado_reserva: row.estado_reserva || row.Estado || "pendente",
-                        total_price: row.total_price || row.Valor || row.Preço || 0,
-                        alocation: row.alocation || row.Alocação || row.Localização || "",
-                        campaign_name: row.campaign_name || row.Campanha || "",
-                        observacoes: row.observacoes || row.Observações || row.Notas || "",
-                        is_imported: true,
-                        last_update_source: "importação excel"
-                    };
-                    
-                    // Verificar se booking_id existe, se não, gerar um
-                    if (!row.booking_id && !row["ID Reserva"]) {
-                        // Gerar um ID baseado na matrícula e data
-                        const timestamp = new Date().getTime();
-                        const randomPart = Math.floor(Math.random() * 10000);
-                        reserva.booking_id = `RES-${matriculaNormalizada || 'NOPLATE'}-${timestamp}-${randomPart}`;
-                    } else {
-                        reserva.booking_id = row.booking_id || row["ID Reserva"];
-                    }
-                    
-                    return reserva;
-                });
-
-                console.log("Reservas para Upsert:", reservasParaUpsert);
-
-                // Inserir ou atualizar no Supabase
-                const { data, error } = await supabase
-                    .from('reservas')
-                    .upsert(reservasParaUpsert, {
-                        onConflict: 'matricula,check_in_datetime',
-                        returning: 'minimal'
-                    });
-
-                if (error) throw error;
-
-                if (importacaoStatusEl) {
-                    importacaoStatusEl.textContent = `Importação concluída com sucesso! ${reservasParaUpsert.length} reservas processadas.`;
-                    importacaoStatusEl.classList.remove("text-red-500");
-                    importacaoStatusEl.classList.add("text-green-500");
-                }
-
-                // Recarregar a lista de reservas
-                carregarReservasDaLista(1);
-                
-                // Limpar o campo de ficheiro
-                fileImportacaoEl.value = "";
-                if (fileImportacaoLabelEl) {
-                    fileImportacaoLabelEl.textContent = "Escolher Ficheiro";
-                }
-
-            } catch (error) {
-                console.error("Erro ao processar o ficheiro Excel:", error);
-                if (importacaoStatusEl) {
-                    importacaoStatusEl.textContent = `Erro ao processar o ficheiro: ${error.message || "Verifique o formato do ficheiro."}`;
-                    importacaoStatusEl.classList.remove("text-green-500");
-                    importacaoStatusEl.classList.add("text-red-500");
-                }
-            }
-        };
-        reader.onerror = function() {
-            if (importacaoStatusEl) {
-                importacaoStatusEl.textContent = "Erro ao ler o ficheiro.";
-                importacaoStatusEl.classList.remove("text-green-500");
-                importacaoStatusEl.classList.add("text-red-500");
-            }
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    // --- Lógica de Estatísticas e Dashboard ---
-    async function atualizarEstatisticas() {
-        // Atualizar estatísticas básicas
-        if (totalReservasEl) {
-            totalReservasEl.textContent = totalReservasNaBD.toString();
-        }
-        
-        // Calcular valor total estimado
-        if (valorTotalEstimadoEl && todasAsReservasGeral.length > 0) {
-            const valorTotal = todasAsReservasGeral.reduce((sum, reserva) => {
-                return sum + (parseFloat(reserva.total_price) || 0);
-            }, 0);
-            valorTotalEstimadoEl.textContent = formatarMoeda(valorTotal);
-        }
-        
-        // Inicializar gráficos se necessário
-        inicializarGraficos();
-    }
-    
-    function inicializarGraficos() {
-        // Inicializar gráfico de distribuição mensal se o elemento existir
-        if (graficoDistribuicaoMensalEl && !graficoReservasMensal) {
-            const ctx = graficoDistribuicaoMensalEl.getContext('2d');
-            graficoReservasMensal = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-                    datasets: [{
-                        label: 'Reservas por Mês',
-                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                precision: 0
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Inicializar gráfico de reservas por hora se o elemento existir
-        if (graficoReservasPorHoraEl && !graficoReservasHora) {
-            const ctx = graficoReservasPorHoraEl.getContext('2d');
-            graficoReservasHora = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Array.from({length: 24}, (_, i) => `${i}:00`),
-                    datasets: [{
-                        label: 'Reservas por Hora',
-                        data: Array(24).fill(0),
-                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 1,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                precision: 0
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    }
-    
-    // Função para carregar reservas por hora em um dia específico
-    async function carregarReservasPorHora(data) {
-        try {
-            // Formato da data: YYYY-MM-DD
-            const dataInicio = `${data}T00:00:00`;
-            const dataFim = `${data}T23:59:59.999Z`;
-            
-            // Buscar todas as reservas do dia
-            const { data: reservas, error } = await supabase
-                .from('reservas')
-                .select('*')
-                .gte('check_in_datetime', dataInicio)
-                .lte('check_in_datetime', dataFim);
-                
-            if (error) throw error;
-            
-            // Agrupar por hora
-            const reservasPorHora = Array(24).fill(0);
-            
-            if (reservas && reservas.length > 0) {
-                reservas.forEach(reserva => {
-                    if (reserva.check_in_datetime) {
-                        const hora = new Date(reserva.check_in_datetime).getHours();
-                        reservasPorHora[hora]++;
-                    }
-                });
-            }
-            
-            // Atualizar o gráfico
-            if (graficoReservasHora) {
-                graficoReservasHora.data.datasets[0].data = reservasPorHora;
-                graficoReservasHora.update();
-            }
-            
-            return {
-                labels: Array.from({length: 24}, (_, i) => `${i}:00`),
-                data: reservasPorHora
-            };
-        } catch (error) {
-            console.error("Erro ao carregar reservas por hora:", error);
-            return { labels: [], data: [] };
-        }
-    }
-
-    // --- Configuração de Eventos ---
-    function configurarEventos() {
-        // Evento para o botão de voltar ao dashboard
-        if (btnVoltarDashboardEl) {
-            btnVoltarDashboardEl.addEventListener("click", () => {
-                window.location.href = "index.html";
-            });
-        }
-        
-        // Eventos para importação de ficheiros
-        if (fileImportacaoEl) {
-            fileImportacaoEl.addEventListener("change", () => {
-                if (fileImportacaoEl.files.length > 0 && fileImportacaoLabelEl) {
-                    fileImportacaoLabelEl.textContent = fileImportacaoEl.files[0].name;
-                }
-            });
-        }
-        
-        if (btnProcessarFicheiroEl) {
-            btnProcessarFicheiroEl.addEventListener("click", processarFicheiroImportacao);
-        }
-        
-        // Eventos para filtros e pesquisa
-        if (pesquisaReservaEl) {
-            pesquisaReservaEl.addEventListener("keyup", (e) => {
-                if (e.key === "Enter") {
-                    carregarReservasDaLista(1, obterFiltrosAtuais());
-                }
-            });
-        }
-        
-        // Eventos para o datepicker de reservas por hora
-        if (dataReservasPorHoraEl) {
-            // Inicializar flatpickr
-            flatpickr(dataReservasPorHoraEl, {
-                dateFormat: "d/m/Y",
-                locale: "pt",
-                onChange: function(selectedDates) {
-                    if (selectedDates.length > 0) {
-                        const dataFormatada = selectedDates[0].toISOString().split('T')[0];
-                        carregarReservasPorHora(dataFormatada);
-                    }
-                }
-            });
-            
-            // Definir data atual como padrão
-            const hoje = new Date();
-            const diaFormatado = hoje.getDate().toString().padStart(2, '0');
-            const mesFormatado = (hoje.getMonth() + 1).toString().padStart(2, '0');
-            const anoFormatado = hoje.getFullYear();
-            dataReservasPorHoraEl.value = `${diaFormatado}/${mesFormatado}/${anoFormatado}`;
-            
-            // Carregar dados iniciais
-            carregarReservasPorHora(hoje.toISOString().split('T')[0]);
-        }
-        
-        // Eventos para análise de período
-        if (btnAnalisarEl) {
-            btnAnalisarEl.addEventListener("click", () => {
-                let dataInicio, dataFim;
-                
-                if (periodoRapidoEl && periodoRapidoEl.value) {
-                    const hoje = new Date();
-                    const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-                    const ultimoDiaMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-                    
-                    switch (periodoRapidoEl.value) {
-                        case "este_mes":
-                            dataInicio = primeiroDiaMes;
-                            dataFim = ultimoDiaMes;
-                            break;
-                        case "mes_anterior":
-                            dataInicio = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
-                            dataFim = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
-                            break;
-                        case "ultimos_7_dias":
-                            dataInicio = new Date(hoje);
-                            dataInicio.setDate(hoje.getDate() - 7);
-                            dataFim = hoje;
-                            break;
-                        case "ultimos_30_dias":
-                            dataInicio = new Date(hoje);
-                            dataInicio.setDate(hoje.getDate() - 30);
-                            dataFim = hoje;
-                            break;
-                        case "este_ano":
-                            dataInicio = new Date(hoje.getFullYear(), 0, 1);
-                            dataFim = new Date(hoje.getFullYear(), 11, 31);
-                            break;
-                    }
-                    
-                    // Atualizar campos de data se existirem
-                    if (dataInicioEl) {
-                        dataInicioEl.value = `${dataInicio.getDate().toString().padStart(2, '0')}/${(dataInicio.getMonth() + 1).toString().padStart(2, '0')}/${dataInicio.getFullYear()}`;
-                    }
-                    if (dataFimEl) {
-                        dataFimEl.value = `${dataFim.getDate().toString().padStart(2, '0')}/${(dataFim.getMonth() + 1).toString().padStart(2, '0')}/${dataFim.getFullYear()}`;
+                     else {
+                        dadosFormulario[key] = element.value;
                     }
                 } else {
-                    // Usar datas dos inputs se disponíveis
-                    if (dataInicioEl && dataInicioEl.value) {
-                        const partes = dataInicioEl.value.split('/');
-                        if (partes.length === 3) {
-                            dataInicio = new Date(partes[2], partes[1] - 1, partes[0]);
-                        }
-                    }
-                    if (dataFimEl && dataFimEl.value) {
-                        const partes = dataFimEl.value.split('/');
-                        if (partes.length === 3) {
-                            dataFim = new Date(partes[2], partes[1] - 1, partes[0]);
-                        }
-                    }
+                    dadosFormulario[key] = null; 
                 }
-                
-                if (dataInicio && dataFim) {
-                    console.log(`Analisando período: ${dataInicio.toISOString().split('T')[0]} a ${dataFim.toISOString().split('T')[0]}`);
-                    carregarEstatisticasDashboardFiltradas(dataInicio, dataFim);
-                }
-            });
+            }
         }
         
-        // Inicializar datepickers para filtros de data
-        if (dataInicioEl && dataFimEl) {
-            flatpickr(dataInicioEl, {
-                dateFormat: "d/m/Y",
-                locale: "pt"
-            });
-            
-            flatpickr(dataFimEl, {
-                dateFormat: "d/m/Y",
-                locale: "pt"
-            });
+        if (!idReserva && !dadosFormulario.booking_id) { // Se for nova e não tiver Booking ID
+            dadosFormulario.booking_id = `MPK-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
         }
-        
-        // Evento para exportar reservas
-        if (btnExportarReservasEl) {
-            btnExportarReservasEl.addEventListener("click", exportarReservas);
+        if (!idReserva) { // Apenas para novas reservas
+            dadosFormulario.user_id_created = currentUser.id;
+            dadosFormulario.created_at = new Date().toISOString();
         }
-    }
-    
-    function configurarBotoesAcao() {
-        // Configurar botões de editar
-        document.querySelectorAll('.editar-reserva-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const reservaId = btn.getAttribute('data-id');
-                const reserva = todasAsReservasGeral.find(r => r.id === reservaId);
-                if (reserva) {
-                    abrirModalEdicao(reserva);
-                }
-            });
-        });
-        
-        // Configurar botões de apagar
-        document.querySelectorAll('.apagar-reserva-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                if (confirm("Tem certeza que deseja apagar esta reserva?")) {
-                    const reservaId = btn.getAttribute('data-id');
-                    await apagarReserva(reservaId);
-                }
-            });
-        });
-    }
-    
-    // --- Funções de Exportação ---
-    function exportarReservas() {
-        if (todasAsReservasGeral.length === 0) {
-            alert("Não há reservas para exportar.");
-            return;
-        }
-        
-        // Criar uma worksheet
-        const ws = XLSX.utils.json_to_sheet(todasAsReservasGeral);
-        
-        // Criar um workbook e adicionar a worksheet
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Reservas");
-        
-        // Gerar o arquivo Excel
-        const hoje = new Date();
-        const dataFormatada = `${hoje.getFullYear()}-${(hoje.getMonth() + 1).toString().padStart(2, '0')}-${hoje.getDate().toString().padStart(2, '0')}`;
-        XLSX.writeFile(wb, `reservas_${dataFormatada}.xlsx`);
-    }
-    
-    // --- Funções de Modal ---
-    function abrirModalEdicao(reserva) {
-        if (!modalEditarReservaEl || !editReservaIdEl) return;
-        
-        // Preencher o formulário com os dados da reserva
-        editReservaIdEl.value = reserva.id;
-        
-        if (document.getElementById("editMatricula")) {
-            document.getElementById("editMatricula").value = reserva.matricula || "";
-        }
-        if (document.getElementById("editNomeCliente")) {
-            document.getElementById("editNomeCliente").value = reserva.nome_cliente || "";
-        }
-        if (document.getElementById("editDataEntrada")) {
-            document.getElementById("editDataEntrada").value = formatarDataParaInput(reserva.check_in_datetime);
-        }
-        if (document.getElementById("editDataSaida")) {
-            document.getElementById("editDataSaida").value = formatarDataParaInput(reserva.check_out_datetime);
-        }
-        if (document.getElementById("editValor")) {
-            document.getElementById("editValor").value = reserva.total_price || "";
-        }
-        if (document.getElementById("editEstado")) {
-            document.getElementById("editEstado").value = reserva.estado_reserva || "pendente";
-        }
-        if (document.getElementById("editCampanha")) {
-            document.getElementById("editCampanha").value = reserva.campaign_name || "";
-        }
-        if (document.getElementById("editObservacoes")) {
-            document.getElementById("editObservacoes").value = reserva.observacoes || "";
-        }
-        
-        // Mostrar o modal
-        modalEditarReservaEl.classList.remove("hidden");
-    }
-    
-    // --- Funções de CRUD ---
-    async function apagarReserva(id) {
+        dadosFormulario.user_id_last_modified = currentUser.id;
+        dadosFormulario.updated_at = new Date().toISOString();
+        dadosFormulario.last_update_source = "Interface Reservas";
+
+
+        let resultado;
         try {
-            const { error } = await supabase
-                .from('reservas')
-                .delete()
-                .eq('id', id);
-                
+            if (idReserva) { 
+                console.log("A atualizar reserva ID:", idReserva, "Dados:", dadosFormulario);
+                const { data, error } = await supabase.from("reservas").update(dadosFormulario).eq("id", idReserva).select().single();
+                resultado = { data, error };
+            } else { 
+                console.log("A criar nova reserva. Dados:", dadosFormulario);
+                const { data, error } = await supabase.from("reservas").insert(dadosFormulario).select().single();
+                resultado = { data, error };
+            }
+
+            if (resultado.error) throw resultado.error;
+
+            console.log("Reserva guardada com sucesso:", resultado.data);
+            fecharModalReserva();
+            await carregarReservasDaLista(idReserva ? paginaAtualLista : 1, obterFiltrosAtuaisLista()); 
+            await registrarLogReserva(
+                resultado.data.id, 
+                idReserva ? 'Reserva Editada' : 'Nova Reserva Criada', 
+                JSON.stringify(dadosFormulario) // Log dos dados completos
+            );
+
+        } catch (error) {
+            console.error("Erro ao guardar reserva:", error);
+            alert(`Erro ao guardar reserva: ${error.message}`);
+        }
+    }
+    
+    async function registrarLogReserva(reservaPk, descricao, detalhes = null, campoAlterado = null, valorAntigo = null, valorNovo = null) {
+        if (!currentUser) return;
+        try {
+            await supabase.from('reservas_logs').insert({
+                reserva_id: reservaPk,
+                user_id: currentUser.id,
+                user_email: currentUser.email, // Adicionar email do utilizador para referência
+                descricao_alteracao: descricao,
+                campo_alterado: campoAlterado,
+                valor_antigo: valorAntigo,
+                valor_novo: valorNovo,
+                detalhes_alteracao: detalhes ? JSON.stringify(detalhes) : null,
+                timestamp_alteracao: new Date().toISOString()
+            });
+        } catch (logError) {
+            console.error("Erro ao registrar log da reserva:", logError);
+        }
+    }
+
+
+    // --- Lógica de Eliminação de Reservas (DELETE) ---
+    async function apagarReserva(idReserva) {
+        if (!idReserva) return;
+        if (!confirm("Tem a certeza que deseja apagar esta reserva permanentemente? Esta ação não pode ser desfeita.")) return;
+
+        try {
+            const { error } = await supabase.from("reservas").delete().eq("id", idReserva);
             if (error) throw error;
-            
-            // Recarregar a lista após apagar
-            carregarReservasDaLista(paginaAtualLista, obterFiltrosAtuais());
-            
-            alert("Reserva apagada com sucesso!");
+
+            console.log("Reserva apagada com sucesso.");
+            await carregarReservasDaLista(paginaAtualLista, obterFiltrosAtuaisLista()); 
+            // Não é comum registar log para deleção na mesma tabela de logs de alteração, mas pode ser feito
+            // await registrarLogReserva(idReserva, 'Reserva Apagada', { id_apagado: idReserva });
+
         } catch (error) {
             console.error("Erro ao apagar reserva:", error);
             alert(`Erro ao apagar reserva: ${error.message}`);
         }
     }
     
-    // --- Inicialização da Página ---
-    async function initReservasPage() {
-        console.log("reservas.js: Iniciando initReservasPage...");
-        
-        // Verificar autenticação
-        try {
-            await window.checkAuthStatus();
-            console.log("reservas.js: Autenticação verificada.");
-        } catch (error) {
-            console.error("Erro ao verificar autenticação:", error);
-            return;
+    // --- Configurar Botões de Ação Dinâmicos (Editar/Apagar/Log) ---
+    function configurarBotoesAcao() {
+        document.querySelectorAll(".editar-reserva-btn").forEach(button => {
+            button.removeEventListener("click", handleEditarReservaClick); 
+            button.addEventListener("click", handleEditarReservaClick);
+        });
+        document.querySelectorAll(".apagar-reserva-btn").forEach(button => {
+            button.removeEventListener("click", handleApagarReservaClick); 
+            button.addEventListener("click", handleApagarReservaClick);
+        });
+        document.querySelectorAll(".log-reserva-btn").forEach(button => {
+            button.removeEventListener("click", handleLogReservaClick);
+            button.addEventListener("click", handleLogReservaClick);
+        });
+    }
+    function handleEditarReservaClick(event) {
+        const id = event.target.dataset.id;
+        // Para edição, é melhor buscar os dados mais recentes do Supabase
+        // em vez de usar o `todasAsReservasGeral` que pode estar desatualizado.
+        const reservaParaEditar = todasAsReservasGeral.find(r => String(r.id) === String(id)); // Fallback se não buscar novamente
+        if (reservaParaEditar) { // Idealmente, buscaria do Supabase aqui
+            abrirModalReserva(reservaParaEditar);
+        } else {
+            console.error("Reserva não encontrada para edição com ID:", id);
+            alert("Reserva não encontrada. Por favor, atualize a lista.");
         }
-        
-        // Configurar eventos
-        configurarEventos();
-        
-        // Carregar dados iniciais
-        carregarReservasDaLista(1);
-        
-        console.log("Subaplicação Reservas Inicializada!");
+    }
+    function handleApagarReservaClick(event) {
+        const id = event.target.dataset.id;
+        apagarReserva(id);
+    }
+    async function handleLogReservaClick(event) {
+        const reservaPk = event.target.dataset.reservaPk; // Usar o PK da reserva
+        const bookingId = event.target.dataset.bookingId;
+        if (reservaPk) {
+            await mostrarLogsReserva(reservaPk, bookingId);
+        }
     }
     
-    // Iniciar a página com um pequeno delay para garantir que auth_global.js foi carregado
+    // --- Lógica de Importação ---
+    async function processarFicheiroImportacao() {
+        if (!importReservasFileEl || !resProcessarImportacaoBtnEl || !importacaoStatusEl || !loadingImportSpinnerEl) return;
+        const ficheiro = importReservasFileEl.files[0];
+        if (!ficheiro) {
+            importacaoStatusEl.textContent = "Por favor, selecione um ficheiro.";
+            importacaoStatusEl.className = "mt-4 text-sm text-red-600";
+            return;
+        }
+
+        importacaoStatusEl.textContent = "A processar ficheiro...";
+        importacaoStatusEl.className = "mt-4 text-sm text-blue-600";
+        mostrarSpinner("loadingImportSpinner");
+        resProcessarImportacaoBtnEl.disabled = true;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const dataArray = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(dataArray, { type: "array", cellDates: true });
+                const nomePrimeiraFolha = workbook.SheetNames[0];
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[nomePrimeiraFolha], { raw: false, defval: null });
+
+                if (jsonData.length === 0) throw new Error("O ficheiro está vazio ou não foi possível ler os dados.");
+                
+                const { data: { user: importUser } } = await supabase.auth.getUser(); // Obter o utilizador que está a importar
+
+                // Mapeamento mais robusto e adaptado ao schema_final.md
+                const mapeamentoColunas = {
+                    // Coluna no Excel : Coluna no Supabase
+                    "licensePlate": "matricula", "alocation": "alocation", "bookingPrice": "total_price",
+                    "action": "last_action", "actionUser": "last_action_user_details", "actionDate": "last_action_date",
+                    "extraServices": "extra_services", "hasOnlinePayment": "has_online_payment", "stats": "estado_reserva",
+                    "parkBrand": "park_brand", "parkingPrice": "parking_price", "deliveryPrice": "delivery_price",
+                    "deliveryName": "delivery_name", "imported": "is_imported", "idClient": "client_external_id",
+                    "name": "nome_cliente_primeiro", "lastname": "nome_cliente_ultimo", "phoneNumber": "telefone_cliente",
+                    "carInfo": "car_info_details", "brand": "car_brand", "model": "car_model", "color": "car_color",
+                    "infoBasedOnLicensePlate": "info_from_license_plate", "carLocation": "car_location_description",
+                    "checkInVideo": "check_in_video_url", "park": "physical_park_name", "row": "parking_row",
+                    "spot": "parking_spot", "deliveryLocation": "delivery_location", "taxName": "tax_name",
+                    "taxNumber": "tax_number", "city": "client_city", "bookingRemarks": "observacoes",
+                    "terms": "terms_agreed", "campaign": "campaign_name", "campaignPay": "campaign_payment_details",
+                    "condutorRecolha": "pickup_driver_name", "checkIn": "check_in_datetime",
+                    "parkingType": "parking_type", "bookingDate": "data_reserva", "returnFlight": "flight_number",
+                    "checkOut": "check_out_datetime", "email": "email_cliente",
+                    "Booking ID": "booking_id_excel" // Se o Booking ID vier do Excel e for diferente do gerado
+                };
+                
+                const reservasParaUpsert = jsonData.map(row => {
+                    const reservaSupabase = {};
+                    for (const excelCol in mapeamentoColunas) {
+                        if (row[excelCol] !== undefined && row[excelCol] !== null) {
+                            const supabaseCol = mapeamentoColunas[excelCol];
+                            // Tratamento de Datas
+                            if (["data_reserva", "check_in_datetime", "check_out_datetime", "last_action_date"].includes(supabaseCol)) {
+                                if (row[excelCol] instanceof Date) {
+                                    reservaSupabase[supabaseCol] = row[excelCol].toISOString();
+                                } else if (typeof row[excelCol] === 'number') { // Data do Excel como número
+                                    reservaSupabase[supabaseCol] = new Date(XLSX.SSF.format("yyyy-mm-dd hh:mm:ss", row[excelCol])).toISOString();
+                                } else if (typeof row[excelCol] === 'string' && !isNaN(new Date(row[excelCol]).getTime())) {
+                                    reservaSupabase[supabaseCol] = new Date(row[excelCol]).toISOString();
+                                } else {
+                                    reservaSupabase[supabaseCol] = null; // Data inválida
+                                }
+                            } 
+                            // Tratamento de Booleanos
+                            else if (["has_online_payment", "is_imported", "terms_agreed"].includes(supabaseCol)) {
+                                reservaSupabase[supabaseCol] = ['true', '1', 'sim', 'yes', true].includes(String(row[excelCol]).toLowerCase());
+                            }
+                            // Tratamento de Números (total_price, parking_price, delivery_price)
+                            else if (["total_price", "parking_price", "delivery_price"].includes(supabaseCol)) {
+                                const valorLimpo = String(row[excelCol]).replace(/[^0-9.,-]/g, '').replace(',', '.');
+                                reservaSupabase[supabaseCol] = parseFloat(valorLimpo);
+                                if (isNaN(reservaSupabase[supabaseCol])) reservaSupabase[supabaseCol] = null;
+                            }
+                            else {
+                                reservaSupabase[supabaseCol] = row[excelCol];
+                            }
+                        }
+                    }
+
+                    // Combinar nome e apelido
+                    let nomeCompleto = "";
+                    if (reservaSupabase.nome_cliente_primeiro) nomeCompleto += reservaSupabase.nome_cliente_primeiro;
+                    if (reservaSupabase.nome_cliente_ultimo) nomeCompleto += (nomeCompleto ? " " : "") + reservaSupabase.nome_cliente_ultimo;
+                    reservaSupabase.nome_cliente = nomeCompleto.trim() || null;
+                    delete reservaSupabase.nome_cliente_primeiro;
+                    delete reservaSupabase.nome_cliente_ultimo;
+
+                    // Gerar booking_id se não vier do Excel ou se for para ser gerado sempre
+                    if (!reservaSupabase.booking_id_excel) { // Se não houver uma coluna "Booking ID" no Excel
+                        reservaSupabase.booking_id = `IMP-${Date.now().toString().slice(-5)}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
+                    } else {
+                        reservaSupabase.booking_id = reservaSupabase.booking_id_excel; // Usar o do Excel
+                    }
+                    delete reservaSupabase.booking_id_excel;
+
+
+                    reservaSupabase.user_id_created = importUser ? importUser.id : null;
+                    reservaSupabase.created_at = new Date().toISOString();
+                    reservaSupabase.updated_at = new Date().toISOString();
+                    reservaSupabase.user_id_last_modified = importUser ? importUser.id : null;
+                    reservaSupabase.is_imported = true;
+                    reservaSupabase.last_update_source = 'Import Excel Reservas';
+                    
+                    // Garantir que chaves de conflito (matricula, alocation) existem
+                    if (!reservaSupabase.matricula || !reservaSupabase.alocation) {
+                        console.warn("Reserva ignorada por falta de matrícula ou alocation:", reservaSupabase);
+                        return null; // Ignorar esta reserva
+                    }
+                    reservaSupabase.matricula = normalizarMatricula(reservaSupabase.matricula);
+
+
+                    return reservaSupabase;
+                }).filter(Boolean); // Remover nulos (reservas ignoradas)
+
+                console.log("Reservas para Upsert:", reservasParaUpsert);
+
+                if (reservasParaUpsert.length > 0) {
+                    // Usar UPSERT: se a combinação matricula + alocation já existir, atualiza. Senão, insere.
+                    const { data: upsertedData, error: upsertError } = await supabase
+                        .from("reservas")
+                        .upsert(reservasParaUpsert, { 
+                            onConflict: 'matricula,alocation', // Colunas para verificar conflito
+                            ignoreDuplicates: false // Atualiza se houver conflito
+                        })
+                        .select();
+
+                    if (upsertError) throw upsertError;
+                    
+                    importacaoStatusEl.textContent = `${upsertedData.length} reservas importadas/atualizadas com sucesso!`;
+                    importacaoStatusEl.className = "mt-4 text-sm text-green-600";
+                    await carregarReservasDaLista(1, obterFiltrosAtuaisLista()); 
+                } else {
+                    importacaoStatusEl.textContent = "Nenhuma reserva válida encontrada no ficheiro para processar.";
+                    importacaoStatusEl.className = "mt-4 text-sm text-yellow-600";
+                }
+
+            } catch (err) {
+                console.error("Erro ao processar o ficheiro Excel:", err);
+                importacaoStatusEl.textContent = `Erro ao ler ficheiro: ${err.message}`;
+                importacaoStatusEl.className = "mt-4 text-sm text-red-600";
+            } finally {
+                esconderSpinner("loadingImportSpinner");
+                if(resProcessarImportacaoBtnEl) resProcessarImportacaoBtnEl.disabled = false;
+                if(importReservasFileEl) importReservasFileEl.value = ""; 
+            }
+        };
+        reader.onerror = () => {
+            console.error("Erro ao ler o ficheiro.");
+            importacaoStatusEl.textContent = "Erro ao ler o ficheiro selecionado.";
+            importacaoStatusEl.className = "mt-4 text-sm text-red-600";
+            esconderSpinner("loadingImportSpinner");
+            if(resProcessarImportacaoBtnEl) resProcessarImportacaoBtnEl.disabled = false;
+            if(importReservasFileEl) importReservasFileEl.value = "";
+        };
+        reader.readAsArrayBuffer(ficheiro);
+    }
+
+    // --- Lógica de Exportação ---
+    async function exportarReservasParaExcel() {
+        mostrarSpinner("loadingTableSpinner"); 
+        try {
+            // Obter todas as reservas (ou com filtros atuais)
+            const { data: todasAsReservas, error } = await supabase
+                .from("reservas")
+                .select("*") 
+                .order("created_at", { ascending: false });
+            
+            if (error) throw error;
+
+            if (!todasAsReservas || todasAsReservas.length === 0) {
+                alert("Não há dados para exportar.");
+                return;
+            }
+            const worksheet = XLSX.utils.json_to_sheet(todasAsReservas);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Reservas");
+            XLSX.writeFile(workbook, `export_reservas_${new Date().toISOString().slice(0,10)}.xlsx`);
+
+        } catch (error) {
+            console.error("Erro ao obter dados para exportação:", error);
+            alert("Erro ao exportar dados. Tente novamente.");
+        } finally {
+            esconderSpinner("loadingTableSpinner");
+        }
+    }
+
+    // --- Lógica do Dashboard ---
+    async function atualizarDashboardStatsGeral() {
+        if (!supabase) return;
+        try {
+            // Total de Reservas (geral)
+            const { count, error: countError } = await supabase
+                .from('reservas')
+                .select('*', { count: 'exact', head: true }); // Apenas conta, sem buscar dados
+            if (countError) throw countError;
+            if (statTotalReservasEl) statTotalReservasEl.textContent = count || 0;
+
+            // Valor Total Estimado (geral)
+            const { data: sumData, error: sumError } = await supabase
+                .from('reservas')
+                .select('total_price'); // Buscar todos os preços para somar no cliente
+            
+            if (sumError) throw sumError;
+
+            let valorTotalEstimado = 0;
+            if (sumData) {
+                valorTotalEstimado = sumData.reduce((acc, item) => acc + (parseFloat(item.total_price) || 0), 0);
+            }
+            if (statValorTotalReservasEl) statValorTotalReservasEl.textContent = formatarMoeda(valorTotalEstimado);
+
+        } catch (error) {
+            console.error("Erro ao atualizar estatísticas gerais do dashboard:", error);
+        }
+    }
+    
+    async function aplicarFiltrosDashboardEAtualizar() {
+        if (!resDashboardFiltroDataInicioEl || !resDashboardFiltroDataFimEl || !resDashboardFiltroPeriodoEl) return;
+    
+        let dataInicio = resDashboardFiltroDataInicioEl.value;
+        let dataFim = resDashboardFiltroDataFimEl.value;
+        const periodoSelecionado = resDashboardFiltroPeriodoEl.value;
+    
+        const hoje = new Date();
+        const hojeISO = hoje.toISOString().split('T')[0];
+    
+        if (periodoSelecionado !== "personalizado") {
+            resDashboardFiltroDataInicioEl.disabled = true;
+            resDashboardFiltroDataFimEl.disabled = true;
+            let inicio = new Date();
+            let fim = new Date();
+    
+            switch (periodoSelecionado) {
+                case "hoje":
+                    inicio = new Date(hoje.setHours(0, 0, 0, 0));
+                    fim = new Date(hoje.setHours(23, 59, 59, 999));
+                    break;
+                case "semana_atual":
+                    const primeiroDiaSemana = hoje.getDate() - hoje.getDay() + (hoje.getDay() === 0 ? -6 : 1); // Ajuste para segunda-feira
+                    inicio = new Date(hoje.setDate(primeiroDiaSemana));
+                    inicio.setHours(0,0,0,0);
+                    fim = new Date(inicio);
+                    fim.setDate(inicio.getDate() + 6);
+                    fim.setHours(23,59,59,999);
+                    break;
+                case "mes_atual":
+                    inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+                    fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0, 23, 59, 59, 999);
+                    break;
+                case "ultimos_30dias":
+                    fim = new Date(hoje.setHours(23, 59, 59, 999));
+                    inicio = new Date();
+                    inicio.setDate(hoje.getDate() - 30);
+                    inicio.setHours(0,0,0,0);
+                    break;
+                case "este_ano":
+                    inicio = new Date(hoje.getFullYear(), 0, 1);
+                    fim = new Date(hoje.getFullYear(), 11, 31, 23, 59, 59, 999);
+                    break;
+            }
+            dataInicio = inicio.toISOString().split('T')[0];
+            dataFim = fim.toISOString().split('T')[0];
+            resDashboardFiltroDataInicioEl.value = dataInicio;
+            resDashboardFiltroDataFimEl.value = dataFim;
+        } else {
+            resDashboardFiltroDataInicioEl.disabled = false;
+            resDashboardFiltroDataFimEl.disabled = false;
+            if (!dataInicio || !dataFim) {
+                alert("Para período personalizado, selecione data de início e fim.");
+                return;
+            }
+        }
+        if (new Date(dataInicio) > new Date(dataFim)) {
+            alert("A data de início não pode ser posterior à data de fim.");
+            return;
+        }
+    
+        console.log(`Analisando período: ${dataInicio} a ${dataFim}`);
+        await carregarEstatisticasDashboardFiltradas(dataInicio, dataFim);
+    }
+    
+    async function carregarEstatisticasDashboardFiltradas(dataInicio, dataFim) {
+        if (!supabase) return;
+        const inicioISO = dataInicio ? new Date(dataInicio + "T00:00:00.000Z").toISOString() : null;
+        const fimISO = dataFim ? new Date(dataFim + "T23:59:59.999Z").toISOString() : null;
+    
+        if (!inicioISO || !fimISO) {
+            if (statTotalReservasPeriodoEl) statTotalReservasPeriodoEl.textContent = "Selecione um período";
+            if (statValorTotalReservasPeriodoEl) statValorTotalReservasPeriodoEl.textContent = "Selecione um período";
+            return;
+        }
+    
+        try {
+            // Contagem de reservas no período
+            const { count, error: countErr } = await supabase.from('reservas')
+                .select('*', { count: 'exact', head: true })
+                .gte('data_reserva', inicioISO)
+                .lte('data_reserva', fimISO);
+            if (countErr) throw countErr;
+            if (statTotalReservasPeriodoEl) statTotalReservasPeriodoEl.textContent = `${count || 0} (no período)`;
+    
+            // Soma do valor_reserva no período
+            const { data: sumData, error: sumErr } = await supabase.from('reservas')
+                .select('total_price')
+                .gte('data_reserva', inicioISO)
+                .lte('data_reserva', fimISO);
+            if (sumErr) throw sumErr;
+            let valorTotalPeriodo = 0;
+            if (sumData) {
+                valorTotalPeriodo = sumData.reduce((acc, item) => acc + (parseFloat(item.total_price) || 0), 0);
+            }
+            if (statValorTotalReservasPeriodoEl) statValorTotalReservasPeriodoEl.textContent = `${formatarMoeda(valorTotalPeriodo)} (no período)`;
+    
+            // Reservas por campanha (no período)
+            const { data: campData, error: campErr } = await supabase
+                .from('reservas')
+                .select('campaign_name, count:id') // Supabase não tem groupBy direto no client, precisa de RPC ou processar no cliente
+                .gte('data_reserva', inicioISO)
+                .lte('data_reserva', fimISO)
+                .not('campaign_name', 'is', null); // Ignorar campanhas nulas
+            if (campErr) throw campErr;
+            
+            const contagemCampanhas = {};
+            if (campData) {
+                campData.forEach(item => {
+                    contagemCampanhas[item.campaign_name] = (contagemCampanhas[item.campaign_name] || 0) + 1;
+                });
+            }
+            let campHtml = Object.entries(contagemCampanhas).map(([nome, num]) => `${nome}: ${num}`).join('<br>') || "Nenhuma";
+            if (statReservasCampanhaEl) statReservasCampanhaEl.innerHTML = campHtml;
+    
+            // Reservas por dia da semana (no período)
+            const { data: diaSemanaData, error: diaSemanaErr } = await supabase
+                .from('reservas')
+                .select('data_reserva')
+                .gte('data_reserva', inicioISO)
+                .lte('data_reserva', fimISO);
+            if (diaSemanaErr) throw diaSemanaErr;
+
+            const diasDaSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+            const contagemDias = Array(7).fill(0);
+            if (diaSemanaData) {
+                diaSemanaData.forEach(item => {
+                    const dia = new Date(item.data_reserva).getDay();
+                    contagemDias[dia]++;
+                });
+            }
+            let diaSemanaHtml = diasDaSemana.map((dia, i) => `${dia}: ${contagemDias[i]}`).join(' | ');
+            if (statReservasDiaSemanaEl) statReservasDiaSemanaEl.innerHTML = diaSemanaHtml;
+
+            // Atualizar gráfico mensal (simplificado, apenas para o ano do período)
+            if (graficoReservasMensal) {
+                 const anoInicio = new Date(dataInicio).getFullYear();
+                 const anoFim = new Date(dataFim).getFullYear();
+                 // Para simplificar, pegamos o primeiro ano do período se for um intervalo.
+                 // Uma lógica mais complexa seria necessária para múltiplos anos.
+                 const anoParaGrafico = anoInicio; 
+                 
+                 const { data: mensalData, error: mensalErr } = await supabase.rpc('contar_reservas_por_mes_no_ano', { ano_param: anoParaGrafico });
+                 if (mensalErr) throw mensalErr;
+
+                 const dataGraficoMensal = Array(12).fill(0);
+                 if (mensalData) {
+                     mensalData.forEach(item => {
+                         if (item.mes >= 1 && item.mes <= 12) {
+                             dataGraficoMensal[item.mes - 1] = item.total_reservas;
+                         }
+                     });
+                 }
+                 graficoReservasMensal.data.datasets[0].data = dataGraficoMensal;
+                 graficoReservasMensal.data.datasets[0].label = `Reservas em ${anoParaGrafico}`;
+                 graficoReservasMensal.update();
+            }
+
+
+        } catch (error) {
+            console.error("Erro ao carregar estatísticas filtradas do dashboard:", error);
+            if (statTotalReservasPeriodoEl) statTotalReservasPeriodoEl.textContent = "Erro";
+        }
+    }
+    
+    function setupGraficosReservas() {
+        if (!chartReservasPorHoraEl || !chartReservasMensalEl) {
+            console.warn("Elementos canvas para gráficos não encontrados.");
+            return;
+        }
+        try {
+            // Gráfico por Hora
+            const ctxHora = chartReservasPorHoraEl.getContext('2d');
+            if (graficoReservasHora) graficoReservasHora.destroy();
+            graficoReservasHora = new Chart(ctxHora, {
+                type: 'bar',
+                data: { labels: [], datasets: [{ label: 'Nº de Reservas', data: [], backgroundColor: 'rgba(54, 162, 235, 0.6)', borderColor: 'rgba(54, 162, 235, 1)', borderWidth: 1 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+
+            // Gráfico Mensal
+            const ctxMensal = chartReservasMensalEl.getContext('2d');
+            if(graficoReservasMensal) graficoReservasMensal.destroy();
+            graficoReservasMensal = new Chart(ctxMensal, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+                    datasets: [{
+                        label: 'Total de Reservas por Mês', data: Array(12).fill(0),
+                        borderColor: 'rgba(75, 192, 192, 1)', backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: true, tension: 0.1
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            });
+        } catch(e) {
+            console.error("Erro ao configurar gráficos de Reservas:", e);
+        }
+    }
+
+    async function carregarReservasPorHora(dataSelecionada) {
+        if (!graficoReservasHora || !statReservasHoraConteudoEl || !resDashboardDataHoraDisplayEl) return;
+        
+        resDashboardDataHoraDisplayEl.textContent = new Date(dataSelecionada + "T00:00:00").toLocaleDateString('pt-PT'); // Adicionar T00:00:00 para evitar problemas de fuso horário na formatação
+        statReservasHoraConteudoEl.textContent = "A carregar...";
+
+        try {
+            const { data, error } = await supabase.rpc('contar_reservas_por_hora_no_dia', { dia_param: dataSelecionada });
+            if (error) throw error;
+
+            const labelsHora = Array.from({length: 24}, (_, i) => `${String(i).padStart(2, '0')}:00`);
+            const dataHora = Array(24).fill(0);
+            let totalNoDia = 0;
+
+            if (data) {
+                data.forEach(item => {
+                    if (item.hora >= 0 && item.hora <= 23) {
+                        dataHora[item.hora] = item.total_reservas;
+                        totalNoDia += item.total_reservas;
+                    }
+                });
+            }
+            
+            graficoReservasHora.data.labels = labelsHora;
+            graficoReservasHora.data.datasets[0].data = dataHora;
+            graficoReservasHora.update();
+            statReservasHoraConteudoEl.textContent = `Total: ${totalNoDia} reservas neste dia.`;
+
+        } catch (error) {
+            console.error("Erro ao carregar reservas por hora:", error);
+            statReservasHoraConteudoEl.textContent = "Erro ao carregar dados.";
+        }
+    }
+    
+    // --- Modal de Logs ---
+    async function mostrarLogsReserva(reservaPk, bookingIdParaDisplay) {
+        if (!reservaLogModalEl || !reservaLogTableBodyEl || !reservaLogNenhumaMsgEl || !logReservaBookingIdEl) return;
+        
+        logReservaBookingIdEl.textContent = `(${bookingIdParaDisplay || reservaPk})`;
+        reservaLogTableBodyEl.innerHTML = '<tr><td colspan="6" class="text-center py-4">A carregar histórico...</td></tr>';
+        reservaLogNenhumaMsgEl.classList.add('hidden');
+        reservaLogModalEl.classList.add('active');
+        reservaLogModalEl.classList.remove('hidden');
+
+        try {
+            const { data: logs, error } = await supabase
+                .from('reservas_logs')
+                .select('*')
+                .eq('reserva_id', reservaPk) // Filtrar pelo PK da reserva
+                .order('timestamp_alteracao', { ascending: false });
+
+            if (error) throw error;
+
+            reservaLogTableBodyEl.innerHTML = '';
+            if (logs && logs.length > 0) {
+                logs.forEach(log => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="py-2 px-3 text-xs">${formatarDataHora(log.timestamp_alteracao)}</td>
+                        <td class="py-2 px-3 text-xs">${log.user_email || log.user_id || 'Sistema'}</td>
+                        <td class="py-2 px-3 text-xs">${log.descricao_alteracao || 'N/A'}</td>
+                        <td class="py-2 px-3 text-xs">${log.campo_alterado || '-'}</td>
+                        <td class="py-2 px-3 text-xs">${log.valor_antigo !== null ? String(log.valor_antigo).substring(0,50) : '-'}</td>
+                        <td class="py-2 px-3 text-xs">${log.valor_novo !== null ? String(log.valor_novo).substring(0,50) : '-'}</td>
+                    `;
+                    reservaLogTableBodyEl.appendChild(tr);
+                });
+            } else {
+                reservaLogNenhumaMsgEl.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error("Erro ao carregar histórico da reserva:", error);
+            reservaLogTableBodyEl.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-red-500">Erro ao carregar histórico.</td></tr>';
+        }
+    }
+
+    function fecharModalLogReserva() {
+        if(reservaLogModalEl) {
+            reservaLogModalEl.classList.remove('active');
+            reservaLogModalEl.classList.add('hidden');
+        }
+    }
+
+
+    // --- Event Listeners ---
+    if (resProcessarImportacaoBtnEl) { // Botão de importar
+        resProcessarImportacaoBtnEl.addEventListener("click", processarFicheiroImportacao);
+    } else {
+        console.warn("Botão de processar importação não encontrado.");
+    }
+    
+    if (importReservasFileEl) { // Input de ficheiro
+         // Não é necessário um listener de 'change' se o botão 'Processar' é usado.
+         // Se quiser auto-processar ao selecionar:
+         // importReservasFileEl.addEventListener("change", processarFicheiroImportacao);
+    } else {
+        console.warn("Input de ficheiro para importação não encontrado.");
+    }
+
+
+    if (resAbrirModalNovaBtnEl) {
+        resAbrirModalNovaBtnEl.addEventListener("click", () => abrirModalReserva(null));
+    }
+
+    resFecharModalBtns.forEach(btn => btn.addEventListener("click", fecharModalReserva));
+    resFecharLogModalBtns.forEach(btn => btn.addEventListener("click", fecharModalLogReserva));
+
+
+    if (reservaFormEl) {
+        reservaFormEl.addEventListener("submit", submeterFormularioReserva);
+    }
+
+    if (resExportarBtnEl) {
+        resExportarBtnEl.addEventListener("click", exportarReservasParaExcel);
+    }
+    
+    if (resSearchBtnEl && resSearchTermEl) {
+        resSearchBtnEl.addEventListener("click", () => carregarReservasDaLista(1, obterFiltrosAtuaisLista()));
+        resSearchTermEl.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") carregarReservasDaLista(1, obterFiltrosAtuaisLista());
+        });
+    }
+    if (resAplicarFiltrosListaBtnEl) { 
+        resAplicarFiltrosListaBtnEl.addEventListener("click", () => carregarReservasDaLista(1, obterFiltrosAtuaisLista()));
+    }
+
+    if (resAplicarFiltrosDashboardBtnEl) { 
+        resAplicarFiltrosDashboardBtnEl.addEventListener("click", aplicarFiltrosDashboardEAtualizar);
+    }
+    if (resDashboardFiltroPeriodoEl) {
+        resDashboardFiltroPeriodoEl.addEventListener('change', aplicarFiltrosDashboardEAtualizar);
+    }
+
+    if (resDashboardDataHoraInputEl) {
+        resDashboardDataHoraInputEl.addEventListener('change', function() {
+            if (this.value) {
+                carregarReservasPorHora(this.value);
+            }
+        });
+    }
+    
+    if (voltarDashboardBtnReservasEl) {
+        voltarDashboardBtnReservasEl.addEventListener('click', () => {
+            window.location.href = 'index.html'; // Redireciona para a página principal
+        });
+    }
+
+
+    // --- Inicialização da Página ---
+    async function initReservasPage() {
+        // Garantir que a autenticação foi verificada e o perfil está disponível
+        if (typeof window.checkAuthStatus === 'function') {
+            await window.checkAuthStatus(); 
+        } else {
+            console.warn("Função checkAuthStatus não encontrada. A autenticação pode não funcionar corretamente.");
+            // Considerar redirecionar para login se checkAuthStatus for essencial e não estiver definido
+            // window.location.href = 'index.html';
+            // return;
+        }
+        
+        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+        if (authError || !authUser) {
+            console.error("Erro ao obter utilizador ou utilizador não autenticado em reservas.js:", authError);
+            // auth_global.js deve ter tratado o redirecionamento, mas como fallback:
+            // window.location.href = 'index.html'; 
+            return;
+        }
+        currentUser = authUser;
+        userProfile = JSON.parse(localStorage.getItem('userProfile')); // Assumindo que auth_global.js preenche isto
+
+        if (!userProfile) {
+            console.warn("Perfil do utilizador não encontrado no localStorage (Reservas). Algumas funcionalidades podem ser limitadas.");
+        }
+
+        console.log("Subaplicação Reservas Inicializada!");
+        setupGraficosReservas(); 
+        await carregarReservasDaLista(); 
+        await aplicarFiltrosDashboardEAtualizar(); // Carrega dashboard com período padrão
+        
+        // Definir data padrão para o seletor de "Reservas por Hora"
+        if (resDashboardDataHoraInputEl) {
+            resDashboardDataHoraInputEl.value = new Date().toISOString().split('T')[0];
+            // Disparar o evento change para carregar o gráfico para o dia atual
+            resDashboardDataHoraInputEl.dispatchEvent(new Event('change'));
+        }
+    }
+
+    // Atrasar a inicialização para dar tempo a auth_global.js
     setTimeout(() => {
         initReservasPage();
-    }, 100);
+    }, 250);
+
 });
