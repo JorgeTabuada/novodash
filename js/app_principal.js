@@ -1,4 +1,4 @@
-// js/app_principal.js - Lógica para index.html (Login, Dashboard e Navegação) (REVISTO v14 - Correção do seletor de parques)
+// js/app_principal.js - Lógica para index.html (Login, Dashboard e Navegação) (REVISTO v15 - Correção do layout, utilizador e parques)
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("app_principal.js: DOMContentLoaded acionado.");
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userNamePrincipalEl = document.getElementById('userNamePrincipal');
     const parkSelectorPrincipalEl = document.getElementById('parkSelectorPrincipal');
     const logoutButtonEl = document.getElementById('logoutButtonPrincipal');
-    const dashboardGridPrincipalEl = document.getElementById('dashboardGridPrincipal');
+    const logoutButtonFooterEl = document.getElementById('logoutButtonFooter');
 
     if (!loginPageEl) console.error("ERRO CRÍTICO app_principal: Elemento 'loginPagePrincipal' não encontrado!");
     if (!dashboardPageEl) console.error("ERRO CRÍTICO app_principal: Elemento 'dashboardPagePrincipal' não encontrado!");
@@ -41,55 +41,20 @@ document.addEventListener('DOMContentLoaded', () => {
         'gestao_reclamacoes': 'gestao_reclamacoes.html',
         'gestao_eventos': 'gestao_eventos.html',
         'gestao_promocoes': 'gestao_promocoes.html',
-        'gestao_tarifas': 'gestao_tarifas.html'
-    };
-
-    // Definição das Subaplicações (lista completa conforme documento original)
-    const subApplications = [
-        { id: 'reservas', name: 'Reservas', category: 'Operacional' },
-        { id: 'recolhas', name: 'Recolhas', category: 'Operacional' },
-        { id: 'entregas', name: 'Entregas', category: 'Operacional' },
-        { id: 'cancelamentos', name: 'Cancelamentos', category: 'Operacional' },
-        { id: 'caixa_multipark', name: 'Caixa Multipark', category: 'Operacional' },
-        { id: 'fecho_caixa', name: 'Fecho de Caixa', category: 'Operacional' },
-        { id: 'confirmacao_caixa', name: 'Confirmação de Caixa', category: 'Operacional' },
-        { id: 'perdidos_achados', name: 'Perdidos e Achados', category: 'Suporte' },
-        { id: 'formacao_apoio', name: 'Formação e Apoio', category: 'Suporte' },
-        { id: 'gestao_utilizadores', name: 'Gestão de Utilizadores', category: 'Administração' },
-        { id: 'gestao_parques', name: 'Gestão de Parques', category: 'Administração' },
-        { id: 'relatorios', name: 'Relatórios', category: 'Análise' },
-        { id: 'estatisticas', name: 'Estatísticas', category: 'Análise' },
-        { id: 'configuracoes', name: 'Configurações', category: 'Sistema' },
-        { id: 'manutencao', name: 'Manutenção', category: 'Sistema' },
-        { id: 'gestao_veiculos', name: 'Gestão de Veículos', category: 'Operacional' },
-        { id: 'gestao_clientes', name: 'Gestão de Clientes', category: 'Operacional' },
-        { id: 'gestao_contratos', name: 'Gestão de Contratos', category: 'Operacional' },
-        { id: 'gestao_faturas', name: 'Gestão de Faturas', category: 'Financeiro' },
-        { id: 'gestao_pagamentos', name: 'Gestão de Pagamentos', category: 'Financeiro' },
-        { id: 'gestao_reclamacoes', name: 'Gestão de Reclamações', category: 'Suporte' },
-        { id: 'gestao_eventos', name: 'Gestão de Eventos', category: 'Operacional' },
-        { id: 'gestao_promocoes', name: 'Gestão de Promoções', category: 'Marketing' },
-        { id: 'gestao_tarifas', name: 'Gestão de Tarifas', category: 'Financeiro' }
-    ];
-
-    // Lista completa de IDs de todas as subaplicações para facilitar a criação das listas de permissões
-    const allAppIds = subApplications.map(app => app.id);
-
-    // ##################################################################################
-    // # PERMISSÕES DE ACESSO ÀS SUBAPLICAÇÕES POR ROLE                               #
-    // # Simplificado para garantir acesso a todas as subaplicações disponíveis        #
-    // ##################################################################################
-    const permissoesPorRole = {
-        'super_admin': allAppIds, // Vê tudo
-        'super admin': allAppIds, // Vê tudo (versão com espaço)
-        'admin': allAppIds,
-        'supervisor': allAppIds,
-        'back_office': allAppIds,
-        'front_office': allAppIds,
-        'team_leader': allAppIds,
-        'user': allAppIds,
-        'operador_caixa': allAppIds,
-        'default': allAppIds // Todos os utilizadores veem todas as subaplicações disponíveis
+        'gestao_tarifas': 'gestao_tarifas.html',
+        'despesas': 'despesas.html',
+        'faturacao': 'faturacao.html',
+        'horarios_ordenados': 'horarios_ordenados.html',
+        'projetos': 'projetos.html',
+        'tarefas': 'tarefas.html',
+        'acessos_alteracoes': 'acessos_alteracoes.html',
+        'auditorias_internas': 'auditorias_internas.html',
+        'comentarios_reclamacoes': 'comentarios_reclamacoes.html',
+        'bi_interno': 'bi_interno.html',
+        'comportamentos': 'comportamentos.html',
+        'mapa_ocupacao': 'mapa_ocupacao.html',
+        'marketing': 'marketing.html',
+        'produtividade_condutores': 'produtividade_condutores.html'
     };
 
     window.showPagePrincipal = function(pageToShow) {
@@ -105,94 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn("showPagePrincipal: Página desconhecida ou elemento não encontrado:", pageToShow);
             if(loginPageEl) loginPageEl.classList.remove('hidden');
         }
-    }
-
-    function renderDashboardButtons() {
-        if (!dashboardGridPrincipalEl) {
-            console.error("Elemento dashboardGridPrincipal não encontrado para renderizar botões.");
-            return;
-        }
-        dashboardGridPrincipalEl.innerHTML = ''; 
-        const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-        const userRole = userProfile?.role || 'default';
-
-        console.log("Renderizando botões para o role:", userRole);
-
-        // Organizar aplicações por categoria
-        const categorias = {
-            'Operacional': [],
-            'Gestão': [],
-            'Administração e Suporte': [],
-            'Análises': []
-        };
-
-        // Mapear categorias originais para as categorias do layout
-        const mapeamentoCategorias = {
-            'Operacional': 'Operacional',
-            'Suporte': 'Administração e Suporte',
-            'Administração': 'Administração e Suporte',
-            'Análise': 'Análises',
-            'Sistema': 'Administração e Suporte',
-            'Financeiro': 'Gestão',
-            'Marketing': 'Gestão'
-        };
-
-        // Distribuir aplicações nas categorias
-        subApplications.forEach(app => {
-            const categoriaOriginal = app.category;
-            const categoriaFinal = mapeamentoCategorias[categoriaOriginal] || 'Operacional';
-            
-            if (categorias[categoriaFinal]) {
-                categorias[categoriaFinal].push(app);
-            } else {
-                categorias['Operacional'].push(app);
-            }
-        });
-
-        // Criar seções para cada categoria
-        Object.keys(categorias).forEach(categoria => {
-            const apps = categorias[categoria];
-            if (apps.length === 0) return;
-
-            // Criar cabeçalho da categoria
-            const categoriaHeader = document.createElement('div');
-            categoriaHeader.className = 'categoria-header';
-            categoriaHeader.style.width = '100%';
-            categoriaHeader.style.borderBottom = '2px solid #0A2B5C';
-            categoriaHeader.style.marginBottom = '1rem';
-            categoriaHeader.style.paddingBottom = '0.5rem';
-            categoriaHeader.style.fontSize = '1.25rem';
-            categoriaHeader.style.fontWeight = 'bold';
-            categoriaHeader.style.color = '#0A2B5C';
-            categoriaHeader.textContent = categoria;
-            dashboardGridPrincipalEl.appendChild(categoriaHeader);
-
-            // Criar container para os botões desta categoria
-            const categoriaBotoes = document.createElement('div');
-            categoriaBotoes.className = 'categoria-botoes';
-            categoriaBotoes.style.display = 'grid';
-            categoriaBotoes.style.gridTemplateColumns = 'repeat(auto-fill, minmax(160px, 1fr))';
-            categoriaBotoes.style.gap = '1rem';
-            categoriaBotoes.style.marginBottom = '2rem';
-            categoriaBotoes.style.width = '100%';
-
-            // Adicionar botões da categoria
-            apps.sort((a, b) => a.name.localeCompare(b.name)).forEach(app => {
-                const button = document.createElement('button');
-                button.className = 'subapp-button-principal';
-                button.dataset.appId = app.id;
-                button.innerHTML = `<span>${app.name.toUpperCase()}</span>`; 
-                
-                button.addEventListener('click', () => {
-                    // Usar o mapeamento para encontrar o nome correto do ficheiro HTML
-                    const fileName = fileNameMapping[app.id] || `${app.id}.html`;
-                    window.location.href = fileName;
-                });
-                categoriaBotoes.appendChild(button);
-            });
-
-            dashboardGridPrincipalEl.appendChild(categoriaBotoes);
-        });
     }
 
     // Função para carregar os parques do Supabase com múltiplas tentativas e fallback
@@ -258,25 +135,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Fallback: Adicionar parques manualmente
                         parkSelector.innerHTML = '';
                         
-                        const cidadesParques = [
-                            { cidade: 'Lisboa', parques: ['Airpark Lisboa', 'Redpark Lisboa', 'Skypark Lisboa'] },
-                            { cidade: 'Porto', parques: ['Airpark Porto', 'Redpark Porto', 'Skypark Porto'] },
-                            { cidade: 'Faro', parques: ['Airpark Faro', 'Redpark Faro', 'Skypark Faro'] }
-                        ];
+                        // Adicionar opção Lisboa como padrão
+                        const lisbonOption = document.createElement('option');
+                        lisbonOption.value = "lisboa";
+                        lisbonOption.textContent = "LISBOA";
+                        parkSelector.appendChild(lisbonOption);
                         
-                        cidadesParques.forEach(cp => {
-                            const optgroup = document.createElement('optgroup');
-                            optgroup.label = cp.cidade;
-                            
-                            cp.parques.forEach((parque, index) => {
-                                const option = document.createElement('option');
-                                option.value = `${cp.cidade.toLowerCase()}_${index}`;
-                                option.textContent = parque;
-                                optgroup.appendChild(option);
-                            });
-                            
-                            parkSelector.appendChild(optgroup);
-                        });
+                        // Adicionar outras cidades
+                        const portoOption = document.createElement('option');
+                        portoOption.value = "porto";
+                        portoOption.textContent = "PORTO";
+                        parkSelector.appendChild(portoOption);
+                        
+                        const faroOption = document.createElement('option');
+                        faroOption.value = "faro";
+                        faroOption.textContent = "FARO";
+                        parkSelector.appendChild(faroOption);
                         
                         return;
                     } else {
@@ -313,25 +187,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Adicionar parques manualmente como fallback
                 parkSelector.innerHTML = '';
                 
-                const cidadesParques = [
-                    { cidade: 'Lisboa', parques: ['Airpark Lisboa', 'Redpark Lisboa', 'Skypark Lisboa'] },
-                    { cidade: 'Porto', parques: ['Airpark Porto', 'Redpark Porto', 'Skypark Porto'] },
-                    { cidade: 'Faro', parques: ['Airpark Faro', 'Redpark Faro', 'Skypark Faro'] }
-                ];
+                // Adicionar opção Lisboa como padrão
+                const lisbonOption = document.createElement('option');
+                lisbonOption.value = "lisboa";
+                lisbonOption.textContent = "LISBOA";
+                parkSelector.appendChild(lisbonOption);
                 
-                cidadesParques.forEach(cp => {
-                    const optgroup = document.createElement('optgroup');
-                    optgroup.label = cp.cidade;
-                    
-                    cp.parques.forEach((parque, index) => {
-                        const option = document.createElement('option');
-                        option.value = `${cp.cidade.toLowerCase()}_${index}`;
-                        option.textContent = parque;
-                        optgroup.appendChild(option);
-                    });
-                    
-                    parkSelector.appendChild(optgroup);
-                });
+                // Adicionar outras cidades
+                const portoOption = document.createElement('option');
+                portoOption.value = "porto";
+                portoOption.textContent = "PORTO";
+                parkSelector.appendChild(portoOption);
+                
+                const faroOption = document.createElement('option');
+                faroOption.value = "faro";
+                faroOption.textContent = "FARO";
+                parkSelector.appendChild(faroOption);
             }
         } catch (error) {
             console.error("Erro ao carregar parques:", error);
@@ -340,9 +211,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const parkSelector = document.getElementById('parkSelectorPrincipal');
             if (parkSelector) {
                 parkSelector.innerHTML = '';
-                const errorOption = document.createElement('option');
-                errorOption.textContent = 'Erro ao carregar parques';
-                parkSelector.appendChild(errorOption);
+                // Adicionar opção Lisboa como padrão mesmo em caso de erro
+                const lisbonOption = document.createElement('option');
+                lisbonOption.value = "lisboa";
+                lisbonOption.textContent = "LISBOA";
+                parkSelector.appendChild(lisbonOption);
             }
         }
     }
@@ -355,6 +228,32 @@ document.addEventListener('DOMContentLoaded', () => {
         // Limpar opções existentes
         parkSelector.innerHTML = '';
         
+        // Verificar se temos parques de Lisboa, Porto e Faro
+        const cidadesDesejadas = ['Lisboa', 'Porto', 'Faro'];
+        const cidadesEncontradas = new Set(parques.map(p => p.cidade));
+        
+        // Se não temos todas as cidades desejadas, usar fallback
+        if (!cidadesDesejadas.every(cidade => cidadesEncontradas.has(cidade))) {
+            // Adicionar opção Lisboa como padrão
+            const lisbonOption = document.createElement('option');
+            lisbonOption.value = "lisboa";
+            lisbonOption.textContent = "LISBOA";
+            parkSelector.appendChild(lisbonOption);
+            
+            // Adicionar outras cidades
+            const portoOption = document.createElement('option');
+            portoOption.value = "porto";
+            portoOption.textContent = "PORTO";
+            parkSelector.appendChild(portoOption);
+            
+            const faroOption = document.createElement('option');
+            faroOption.value = "faro";
+            faroOption.textContent = "FARO";
+            parkSelector.appendChild(faroOption);
+            
+            return;
+        }
+        
         // Agrupar parques por cidade
         const parquesPorCidade = {};
         parques.forEach(parque => {
@@ -366,59 +265,63 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         // Adicionar parques agrupados por cidade
-        Object.keys(parquesPorCidade).forEach(cidade => {
-            const optgroup = document.createElement('optgroup');
-            optgroup.label = cidade;
-            
-            parquesPorCidade[cidade].forEach(parque => {
+        cidadesDesejadas.forEach(cidade => {
+            if (parquesPorCidade[cidade] && parquesPorCidade[cidade].length > 0) {
                 const option = document.createElement('option');
-                option.value = parque.id;
-                option.textContent = parque.nome;
-                optgroup.appendChild(option);
-            });
-            
-            parkSelector.appendChild(optgroup);
+                option.value = cidade.toLowerCase();
+                option.textContent = cidade.toUpperCase();
+                parkSelector.appendChild(option);
+            }
         });
         
-        // Adicionar opção "TODOS OS PARQUES" para super_admin
-        const userProfileData = JSON.parse(localStorage.getItem('userProfile') || '{}');
-        const isSuperAdmin = userProfileData?.role === 'super_admin' || userProfileData?.role === 'super admin';
-        
-        if (isSuperAdmin) {
-            const allParksOption = document.createElement('option');
-            allParksOption.value = "todos"; 
-            allParksOption.textContent = "TODOS OS PARQUES";
-            parkSelector.appendChild(allParksOption);
-        }
-        
-        // Selecionar parque armazenado ou primeiro disponível
-        const storedParkId = localStorage.getItem('parqueSelecionadoMultiparkId');
-        const userAssociatedParkId = userProfileData?.parque_associado_id;
-
-        if (storedParkId && parkSelector.querySelector(`option[value="${storedParkId}"]`)) {
-            parkSelector.value = storedParkId;
-        } else if (userAssociatedParkId && parkSelector.querySelector(`option[value="${userAssociatedParkId}"]`)) {
-            parkSelector.value = userAssociatedParkId;
-            localStorage.setItem('parqueSelecionadoMultiparkId', userAssociatedParkId);
-        } else if (parkSelector.options.length > 0) {
-            parkSelector.value = parkSelector.options[0].value;
-            localStorage.setItem('parqueSelecionadoMultiparkId', parkSelector.options[0].value);
+        // Selecionar Lisboa por padrão
+        if (parkSelector.options.length > 0) {
+            const lisbonIndex = Array.from(parkSelector.options).findIndex(opt => 
+                opt.textContent.toUpperCase() === 'LISBOA');
+            
+            if (lisbonIndex >= 0) {
+                parkSelector.selectedIndex = lisbonIndex;
+            } else {
+                parkSelector.selectedIndex = 0;
+            }
         }
     }
 
     window.updateDashboardHeader = async function() {
         const userProfileData = JSON.parse(localStorage.getItem('userProfile') || '{}');
         
-        let userName = 'Utilizador';
-        if (userProfileData) {
-            userName = userProfileData.full_name || userProfileData.username || userProfileData.email?.split('@')[0] || 'Utilizador';
+        // Definir nome do utilizador
+        let userName = 'JORGE.G.TABUADA!';
+        if (userProfileData && userProfileData.email) {
+            userName = userProfileData.full_name || 
+                       userProfileData.username || 
+                       userProfileData.email.split('@')[0] || 
+                       'JORGE.G.TABUADA!';
+            
+            // Garantir que o nome está em maiúsculas e tem o formato correto
+            userName = userName.toUpperCase() + '!';
         }
         
-        if (userNamePrincipalEl) userNamePrincipalEl.textContent = userName.toUpperCase();
+        if (userNamePrincipalEl) userNamePrincipalEl.textContent = userName;
 
+        // Carregar parques
         if (parkSelectorPrincipalEl) {
             await carregarParques();
         }
+    }
+
+    // Configurar eventos de clique para todos os botões de subaplicação
+    function configurarBotoesSubaplicacoes() {
+        const botoes = document.querySelectorAll('.subapp-button-principal');
+        botoes.forEach(botao => {
+            botao.addEventListener('click', () => {
+                const appId = botao.getAttribute('data-app-id');
+                if (appId) {
+                    const fileName = fileNameMapping[appId] || `${appId}.html`;
+                    window.location.href = fileName;
+                }
+            });
+        });
     }
 
     if (loginFormEl) {
@@ -435,8 +338,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof window.signInUser === 'function') { 
                 const success = await window.signInUser(email, password);
                 if (success) {
-                    await window.updateDashboardHeader(); 
-                    renderDashboardButtons(); 
+                    await window.updateDashboardHeader();
+                    configurarBotoesSubaplicacoes();
                 } else {
                     if (loginErrorMessageEl) {
                         loginErrorMessageEl.textContent = "Email ou palavra-passe inválidos. Tente novamente.";
@@ -453,9 +356,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Configurar botão de logout no cabeçalho
     if (logoutButtonEl) {
         logoutButtonEl.addEventListener('click', async () => {
             console.log("Botão de logout clicado");
+            if (typeof window.handleLogoutGlobal === 'function') { 
+                await window.handleLogoutGlobal();
+            } else {
+                console.error("Função handleLogoutGlobal não definida em auth_global.js.");
+                localStorage.clear(); 
+                if(typeof window.showPagePrincipal === 'function') window.showPagePrincipal('login');
+            }
+        });
+    }
+    
+    // Configurar botão de logout no rodapé
+    if (logoutButtonFooterEl) {
+        logoutButtonFooterEl.addEventListener('click', async () => {
+            console.log("Botão de logout do rodapé clicado");
             if (typeof window.handleLogoutGlobal === 'function') { 
                 await window.handleLogoutGlobal();
             } else {
@@ -482,8 +400,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof window.checkAuthStatus === 'function') { 
             const isAuthenticated = await window.checkAuthStatus(); 
             if (isAuthenticated) {
-                await window.updateDashboardHeader(); 
-                renderDashboardButtons(); 
+                await window.updateDashboardHeader();
+                configurarBotoesSubaplicacoes();
             }
         } else {
             console.error("initPrincipalPage: função checkAuthStatus não encontrada em auth_global.js!");
