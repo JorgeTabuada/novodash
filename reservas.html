@@ -3,488 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reservas - Ferramentas Multipark</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Gestão de Reservas - Multipark</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
-        // Define as tuas credenciais Supabase aqui
+        console.log("Supabase client inicializado diretamente no HTML (Reservas).");
         const SUPABASE_URL = 'https://ioftqsvjqwjeprsckeym.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvZnRxc3ZqcXdqZXByc2NrZXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxNTYwNzQsImV4cCI6MjA2MjczMjA3NH0.TXDfhioMFVNxLhjKgpXAxnKCPOl5n8QWpOkX2eafbYw';
-
-        try {
-            if (typeof supabase !== 'undefined' && supabase.createClient) {
-                window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                console.log("Supabase client inicializado diretamente no HTML (Reservas).");
-
-                window.getSupabaseClient = function() {
-                    if (!window.supabase) {
-                        console.error("ERRO CRÍTICO: Cliente Supabase não inicializado (Reservas).");
-                    }
-                    return window.supabase;
-                };
-            } else {
-                throw new Error("Biblioteca Supabase (supabase.createClient) não definida.");
-            }
-        } catch (error) {
-            console.error("ERRO CRÍTICO: Falha ao inicializar Supabase (Reservas).", error);
-            alert("Erro crítico ao conectar com o sistema (Reservas). Contacte o suporte.");
-        }
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5; 
-            color: #333;
-        }
-        .subapp-page { 
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 1rem;
-        }
-        .subapp-content-container { 
-            background-color: #f0f2f5;
-            padding: 1rem;
-            border-radius: 0.5rem; 
-            width: 100%;
-            max-width: 1200px; 
-            display: flex;
-            flex-direction: column;
-            align-items: center; 
-            margin-top: 1rem;
-            margin-bottom: 2rem;
-        }
-        .app-logo-styled { 
-            font-size: 1.85rem;
-            font-weight: 700;
-            color: #0A2B5C; 
-            margin-bottom: 1.5rem;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            letter-spacing: 0.5px;
-            width: 100%; 
-        }
-        .app-logo-styled .logo-p-icon { 
-            background-color: #0A2B5C;
-            color: #fff;
-            padding: 4px 10px;
-            margin-right: 6px;
-            border-radius: 4px;
-            font-family: 'Arial Black', Gadget, sans-serif;
-            font-size: 1.9rem;
-            line-height: 1;
-        }
-        .subapp-header { 
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            background-color: #fff;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 1.5rem;
-        }
-        .subapp-title { 
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #0A2B5C;
-        }
-        .subapp-section { 
-            width: 100%;
-            background-color: #fff;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 1.5rem;
-        }
-        .subapp-section-title { 
-            font-size: 1.2rem; 
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #eee;
-        }
-        .filters-grid, .actions-container, .search-container { 
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            align-items: flex-end;
-        }
-        .filters-grid > div, .search-container > div { 
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1; 
-        }
-        .filters-grid label, .search-container label { 
-            font-size: 0.875rem;
-            margin-bottom: 0.25rem;
-            color: #555;
-        }
-        .filters-grid input[type="text"],
-        .filters-grid input[type="date"],
-        .filters-grid input[type="datetime-local"],
-        .filters-grid select,
-        .search-container input[type="text"],
-        input[type="file"].file-input-styled { 
-            padding: 0.6rem; 
-            border: 1px solid #ccc;
-            border-radius: 0.25rem;
-            font-size: 0.9rem;
-            background-color: #fff; /* Adicionado para consistência */
-        }
-        /* Estilo específico para o input de ficheiro para que pareça um botão */
-        input[type="file"].file-input-styled {
-            cursor: pointer;
-        }
-        /* Esconder o input de ficheiro real se usarmos um label estilizado para o acionar */
-        /* input[type="file"]#importReservasFile { display: none; } */
-
-        .action-button { 
-            background-color: #0d6efd; 
-            color: white;
-            font-weight: 500;
-            padding: 0.6rem 1.2rem;
-            border-radius: 0.375rem;
-            transition: background-color 0.2s;
-            border: none;
-            cursor: pointer;
-        }
-        .action-button:hover {
-            background-color: #0b5ed7; 
-        }
-        .action-button.secondary { 
-            background-color: #6c757d; 
-        }
-        .action-button.secondary:hover {
-            background-color: #5a6268;
-        }
-        .table-container { overflow-x: auto; margin-top: 1rem; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 0.9em; }
-        th { background-color: #f8f9fa; font-weight: 600; color: #495057; } 
-        .actions-cell button { margin-right: 5px; padding: 5px 10px; font-size:0.8em; } 
-
-        .stats-grid { 
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .stat-card { 
-            background-color: #e9f2ff; 
-            padding: 1.25rem; 
-            border-radius: 0.375rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border-left: 4px solid #0d6efd; 
-        }
-        .stat-card h4 { 
-            font-weight: 600;
-            color: #1e40af; 
-            margin-bottom: 0.5rem;
-            font-size: 0.95rem; 
-        }
-        .stat-card p, .stat-card div.stat-value { 
-            font-size: 1.75rem; 
-            font-weight: 700;
-            color: #1d4ed8; 
-        }
-        .stat-card div.stat-subtext { 
-            font-size: 0.85rem;
-            font-weight: normal;
-            color: #555;
-        }
-        .content-placeholder { 
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px dashed #ddd;
-            border-radius: 0.25rem;
-            color: #777;
-            text-align: center;
-            padding: 1rem;
-            background-color: #f9f9f9;
-        }
-        .form-modal-backdrop, .log-modal-backdrop { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.6); display: flex;
-            align-items: center; justify-content: center; z-index: 1050;
-            opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .form-modal-backdrop.active, .log-modal-backdrop.active {
-            opacity: 1; visibility: visible;
-        }
-        .form-modal-dialog, .log-modal-dialog { 
-            background-color: white; padding: 1.5rem; border-radius: 0.5rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 100%; max-width: 700px; 
-            transform: translateY(-20px); transition: transform 0.3s ease;
-        }
-        .form-modal-backdrop.active .form-modal-dialog,
-        .log-modal-backdrop.active .log-modal-dialog {
-            transform: translateY(0);
-        }
-        .form-modal-header, .log-modal-header { 
-            display: flex; justify-content: space-between; align-items: center;
-            padding-bottom: 0.75rem; margin-bottom: 1rem; border-bottom: 1px solid #eee;
-        }
-        .form-modal-title, .log-modal-title { font-size: 1.25rem; font-weight: 600; }
-        .form-modal-body, .log-modal-body { max-height: 70vh; overflow-y: auto; padding-right: 10px; }
-        .form-modal-body .form-group { margin-bottom: 1rem; }
-        .form-modal-body .form-group label { display: block; margin-bottom: 0.3rem; font-size: 0.875rem; font-weight:500; }
-        .form-modal-body .form-group input,
-        .form-modal-body .form-group select,
-        .form-modal-body .form-group textarea {
-            width: 100%; padding: 0.6rem; border: 1px solid #ccc; border-radius: 0.25rem; font-size: 0.9rem;
-        }
-        .form-modal-footer, .log-modal-footer { 
-            padding-top: 1rem; margin-top: 1rem; border-top: 1px solid #eee;
-            display: flex; justify-content: flex-end; gap: 0.75rem;
-        }
-        .hidden { display: none !important; }
-        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #0d6efd; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
 </head>
-<body>
-    <div id="reservasPage" class="subapp-page">
-        <div class="subapp-content-container">
-            <div class="app-logo-styled">
-                <span class="logo-p-icon">P</span><span class="logo-text-multipark">MULTIPARK</span>
+<body class="bg-gray-100 min-h-screen">
+    <header class="bg-white shadow-md p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="bg-blue-900 text-white p-2 rounded mr-2">
+                    <span class="text-2xl font-bold">P</span>
+                </div>
+                <h1 class="text-2xl font-bold text-blue-900">MULTIPARK</h1>
+            </div>
+            <div>
+                <button id="btnVoltarDashboard" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded">
+                    Voltar ao Dashboard
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-bold text-blue-900 mb-4">Gestão de Reservas</h2>
+            
+            <!-- Seção de Importação -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold mb-4">Importar Reservas Iniciais</h3>
+                <div class="flex items-end gap-4">
+                    <div class="flex-grow">
+                        <input type="file" id="fileImportacao" accept=".xlsx,.xls,.csv" class="hidden">
+                        <div class="flex">
+                            <label for="fileImportacao" class="cursor-pointer border border-gray-300 rounded-l px-4 py-2 bg-white hover:bg-gray-50 flex-grow">
+                                <span id="fileImportacaoLabel">Escolher Ficheiro</span>
+                            </label>
+                            <button id="btnProcessarFicheiro" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-r">
+                                Processar Ficheiro
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="importacaoStatus" class="mt-2 text-red-500"></div>
             </div>
 
-            <header class="subapp-header">
-                <h2 class="subapp-title">Gestão de Reservas</h2>
-                <button id="voltarDashboardBtnReservas" class="action-button secondary">Voltar ao Dashboard</button>
-            </header>
-
-            <section class="subapp-section">
-                <h3 class="subapp-section-title">Importar Reservas Iniciais</h3>
-                <div class="actions-container items-center"> <div class="flex-grow"> <label for="importReservasFile" class="sr-only">Carregar ficheiro de reservas (Excel/CSV):</label>
-                        <input type="file" id="importReservasFile" class="file-input-styled block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2.5" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
-                    </div>
-                    <button id="resProcessarImportacaoBtn" class="action-button whitespace-nowrap">Processar Ficheiro</button> </div>
-                <div id="loadingImportSpinner" class="loader hidden"></div>
-                <div id="importacaoStatus" class="mt-4 text-sm"></div>
-            </section>
-
-            <section class="subapp-section">
-                <h3 class="subapp-section-title">Dashboard de Análise de Reservas</h3>
-                <div class="filters-grid mb-6">
+            <!-- Dashboard de Análise -->
+            <div>
+                <h3 class="text-xl font-semibold mb-4">Dashboard de Análise de Reservas</h3>
+                
+                <!-- Filtros -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
-                        <label for="resDashboardFiltroDataInicio">Data Início:</label>
-                        <input type="date" id="resDashboardFiltroDataInicio">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Data Início:</label>
+                        <input type="text" id="dataInicio" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="dd/mm/aaaa">
                     </div>
                     <div>
-                        <label for="resDashboardFiltroDataFim">Data Fim:</label>
-                        <input type="date" id="resDashboardFiltroDataFim">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Data Fim:</label>
+                        <input type="text" id="dataFim" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="dd/mm/aaaa">
                     </div>
                     <div>
-                        <label for="resDashboardFiltroPeriodo">Período Rápido:</label>
-                        <select id="resDashboardFiltroPeriodo">
-                            <option value="hoje">Hoje</option>
-                            <option value="semana_atual">Esta Semana</option>
-                            <option value="mes_atual" selected>Este Mês</option>
-                            <option value="ultimos_30dias">Últimos 30 Dias</option>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Período Rápido:</label>
+                        <select id="periodoRapido" class="w-full border border-gray-300 rounded px-3 py-2">
+                            <option value="este_mes">Este Mês</option>
+                            <option value="mes_anterior">Mês Anterior</option>
+                            <option value="ultimos_7_dias">Últimos 7 Dias</option>
+                            <option value="ultimos_30_dias">Últimos 30 Dias</option>
                             <option value="este_ano">Este Ano</option>
-                            <option value="personalizado">Personalizado</option>
                         </select>
                     </div>
-                    <button id="resAplicarFiltrosDashboardBtn" class="action-button">Analisar</button>
                 </div>
+                
+                <div class="text-right mb-4">
+                    <button id="btnAnalisar" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
+                        Analisar
+                    </button>
+                </div>
+                
+                <!-- Cards de Estatísticas -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 class="text-blue-800 font-semibold mb-2">Total de Reservas</h4>
+                        <p id="totalReservas" class="text-3xl font-bold text-blue-900">0</p>
+                        <p id="totalReservasComparacao" class="text-sm text-gray-500">N/A</p>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <h4 class="text-green-800 font-semibold mb-2">Valor Total Estimado</h4>
+                        <p id="valorTotalEstimado" class="text-3xl font-bold text-green-900">0,00 €</p>
+                        <p id="valorTotalEstimadoComparacao" class="text-sm text-gray-500">N/A</p>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                        <h4 class="text-purple-800 font-semibold mb-2">Reservas por Campanha</h4>
+                        <p id="reservasPorCampanha" class="text-3xl font-bold text-purple-900">Calculando...</p>
+                    </div>
+                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                        <h4 class="text-orange-800 font-semibold mb-2">Reservas por Dia da Semana</h4>
+                        <p id="reservasPorDiaSemana" class="text-3xl font-bold text-orange-900">Calculando...</p>
+                    </div>
+                </div>
+                
+                <!-- Gráficos -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                        <h4 class="text-gray-800 font-semibold mb-4">Reservas por Hora (selecione um dia)</h4>
+                        <input type="text" id="dataReservasPorHora" class="w-full border border-gray-300 rounded px-3 py-2 mb-4" placeholder="dd/mm/aaaa">
+                        <div class="h-64">
+                            <canvas id="graficoReservasPorHora"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                        <h4 class="text-gray-800 font-semibold mb-4">Distribuição de Reservas Mensal</h4>
+                        <div class="h-64">
+                            <canvas id="graficoDistribuicaoMensal"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lista de Reservas -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">Lista de Reservas</h3>
+                <div class="flex gap-2">
+                    <input type="text" id="pesquisaReserva" placeholder="Pesquisar..." class="border border-gray-300 rounded px-3 py-2">
+                    <button id="btnExportarReservas" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">
+                        <i class="fas fa-file-export mr-1"></i> Exportar
+                    </button>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-2 px-4 border-b text-left">ID</th>
+                            <th class="py-2 px-4 border-b text-left">Matrícula</th>
+                            <th class="py-2 px-4 border-b text-left">Data Entrada</th>
+                            <th class="py-2 px-4 border-b text-left">Data Saída</th>
+                            <th class="py-2 px-4 border-b text-left">Valor</th>
+                            <th class="py-2 px-4 border-b text-left">Estado</th>
+                            <th class="py-2 px-4 border-b text-left">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaReservas">
+                        <!-- Dados serão inseridos via JavaScript -->
+                        <tr>
+                            <td colspan="7" class="py-4 text-center text-gray-500">Carregando reservas...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-4 flex justify-between items-center">
+                <div>
+                    <span id="totalRegistros">0</span> registros encontrados
+                </div>
+                <div class="flex gap-2">
+                    <button id="btnPaginaAnterior" class="bg-gray-200 hover:bg-gray-300 text-gray-700 py-1 px-3 rounded disabled:opacity-50">
+                        Anterior
+                    </button>
+                    <span id="paginaAtual" class="py-1 px-2">Página 1</span>
+                    <button id="btnProximaPagina" class="bg-gray-200 hover:bg-gray-300 text-gray-700 py-1 px-3 rounded disabled:opacity-50">
+                        Próxima
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
 
-                <div id="reservasDashboardStats" class="stats-grid">
-                    <div class="stat-card">
-                        <h4>Total de Reservas</h4>
-                        <p id="statTotalReservas" class="stat-value">0</p>
-                        <div id="statTotalReservasPeriodo" class="stat-subtext">N/A</div>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Valor Total Estimado</h4>
-                        <p id="statValorTotalReservas" class="stat-value">0,00 €</p>
-                         <div id="statValorTotalReservasPeriodo" class="stat-subtext">N/A</div>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Reservas por Campanha</h4>
-                        <div id="statReservasCampanha" class="stat-subtext">Calculando...</div>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Reservas por Dia da Semana</h4>
-                        <div id="statReservasDiaSemana" class="stat-subtext">Calculando...</div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                    <div class="subapp-section p-4 rounded-lg shadow">
-                        <h4 class="subapp-section-title text-center">Reservas por Hora (<span id="resDashboardDataHoraDisplay">selecione um dia</span>)</h4>
-                        <input type="date" id="resDashboardDataHoraInput" class="w-full p-2 border rounded mb-2">
-                        <canvas id="chartReservasPorHora" height="200"></canvas>
-                        <div id="statReservasHoraConteudo" class="text-sm text-center mt-2">Selecione um dia para ver as contagens.</div>
-                    </div>
-                    <div class="subapp-section p-4 rounded-lg shadow">
-                         <h4 class="subapp-section-title text-center">Distribuição de Reservas Mensal</h4>
-                        <canvas id="chartReservasMensal" height="200"></canvas>
-                    </div>
-                </div>
-
-                <div class="subapp-section mt-6">
-                    <h4 class="subapp-section-title">Calendário de Reservas</h4>
-                    <div id="calendarioReservasContainer" class="content-placeholder">
-                        <p>A vista de calendário aparecerá aqui. (Requer integração de biblioteca JS)</p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="subapp-section">
-                <h3 class="subapp-section-title">Procurar e Modificar Reserva</h3>
-                <div class="search-container">
-                    <div>
-                        <label for="resSearchTerm">Termo de Pesquisa (ID, Matrícula, Alocation, Cliente):</label>
-                        <input type="text" id="resSearchTerm" placeholder="Insira para pesquisar...">
-                    </div>
-                    <button id="resSearchBtn" class="action-button">Procurar</button>
-                </div>
-            </section>
-
-            <section class="subapp-section">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="subapp-section-title !mb-0">Lista de Reservas</h3>
-                    <div class="actions-container !mb-0">
-                        <button id="resAbrirModalNovaBtn" class="action-button">Nova Reserva Manual</button>
-                        <button id="resExportarBtn" class="action-button secondary">Exportar Lista (CSV)</button>
-                    </div>
-                </div>
-                <div class="filters-grid"> <div><label for="resFiltroClienteLista">Cliente</label><input type="text" id="resFiltroClienteLista" placeholder="Nome ou Email..."></div>
-                    <div><label for="resFiltroMatriculaLista">Matrícula</label><input type="text" id="resFiltroMatriculaLista" placeholder="AA-00-BB..."></div>
-                    <div><label for="resFiltroDataEntradaLista">Data Entrada (a partir de)</label><input type="date" id="resFiltroDataEntradaLista"></div>
-                    <div>
-                        <label for="resFiltroEstadoLista">Estado</label>
-                        <select id="resFiltroEstadoLista">
-                            <option value="">Todos</option>
-                            <option value="Confirmada">Confirmada</option>
-                            <option value="Pendente">Pendente</option>
-                            <option value="Cancelada">Cancelada</option>
-                            <option value="Concluída">Concluída</option>
-                            <option value="Em Curso">Em Curso</option> 
-                        </select>
-                    </div>
-                    <button id="resAplicarFiltrosListaBtn" class="action-button">Filtrar Lista</button>
-                </div>
-                <div class="table-container">
-                    <table id="reservasTable">
-                        <thead>
-                            <tr>
-                                <th>Booking ID</th>
-                                <th>Data Reserva</th>
-                                <th>Cliente</th>
-                                <th>Matrícula</th>
-                                <th>Alocation</th>
-                                <th>Entrada Prev.</th>
-                                <th>Saída Prev.</th>
-                                <th>Parque</th>
-                                <th>Valor</th>
-                                <th>Estado</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="reservasTableBody">
-                            </tbody>
-                    </table>
-                </div>
-                <p id="reservasNenhumaMsg" class="content-placeholder hidden">Nenhuma reserva encontrada com os filtros atuais.</p>
-                 <div id="reservasPaginacao" class="mt-4 flex justify-center items-center gap-2"></div>
-            </section>
+    <!-- Modal de Detalhes da Reserva -->
+    <div id="modalDetalhesReserva" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">Detalhes da Reserva</h3>
+                <button id="btnFecharModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="conteudoDetalhesReserva">
+                <!-- Conteúdo será inserido via JavaScript -->
+            </div>
+            
+            <div class="mt-6 flex justify-end gap-2">
+                <button id="btnCancelarReserva" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">
+                    Cancelar Reserva
+                </button>
+                <button id="btnEditarReserva" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
+                    Editar
+                </button>
+                <button id="btnFecharDetalhes" class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded">
+                    Fechar
+                </button>
+            </div>
         </div>
     </div>
 
-    <div id="reservaFormModal" class="form-modal-backdrop hidden">
-        <div class="form-modal-dialog">
-            <div class="form-modal-header">
-                <h5 class="form-modal-title" id="reservaFormModalTitle">Nova Reserva</h5>
-                <button type="button" class="text-xl font-bold resFecharModalBtn">&times;</button>
+    <!-- Modal de Edição de Reserva -->
+    <div id="modalEditarReserva" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-6 max-w-2xl w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">Editar Reserva</h3>
+                <button id="btnFecharModalEdicao" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <form id="reservaForm">
-                <div class="form-modal-body">
-                    <input type="hidden" id="reservaFormId"> 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-group"><label for="reservaFormBookingId">Booking ID (Opcional)</label><input type="text" id="reservaFormBookingId" placeholder="Ex: MPK-XXXXXX"></div>
-                        <div class="form-group"><label for="reservaFormDataReserva">Data da Reserva</label><input type="datetime-local" id="reservaFormDataReserva" required></div>
-                        <div class="form-group"><label for="reservaFormNomeCliente">Nome Cliente</label><input type="text" id="reservaFormNomeCliente" required></div>
-                        <div class="form-group"><label for="reservaFormEmailCliente">Email Cliente</label><input type="email" id="reservaFormEmailCliente"></div>
-                        <div class="form-group"><label for="reservaFormTelefoneCliente">Telefone Cliente</label><input type="tel" id="reservaFormTelefoneCliente"></div>
-                        <div class="form-group"><label for="reservaFormMatricula">Matrícula</label><input type="text" id="reservaFormMatricula" placeholder="AA-00-BB"></div>
-                        <div class="form-group"><label for="reservaFormAlocation">Alocation</label><input type="text" id="reservaFormAlocation" required></div>
-                        <div class="form-group"><label for="reservaFormDataEntrada">Entrada Prevista</label><input type="datetime-local" id="reservaFormDataEntrada" required></div>
-                        <div class="form-group"><label for="reservaFormDataSaida">Saída Prevista</label><input type="datetime-local" id="reservaFormDataSaida" required></div>
-                        <div class="form-group"><label for="reservaFormParque">Parque</label>
-                            <select id="reservaFormParque" required><option value="lisboa">Lisboa</option><option value="porto">Porto</option><option value="faro">Faro</option></select>
-                        </div>
-                        <div class="form-group"><label for="reservaFormCampanha">Campanha (Opcional)</label><input type="text" id="reservaFormCampanha" placeholder="Ex: VERAO2025"></div>
-                        <div class="form-group"><label for="reservaFormValor">Valor Estimado (€)</label><input type="number" id="reservaFormValor" step="0.01" min="0"></div>
-                        <div class="form-group md:col-span-2"><label for="reservaFormEstado">Estado</label>
-                            <select id="reservaFormEstado" required>
-                                <option value="Pendente">Pendente</option>
-                                <option value="Confirmada" selected>Confirmada</option>
-                                <option value="Cancelada">Cancelada</option>
-                                <option value="Em Curso">Em Curso</option>
-                                <option value="Concluída">Concluída</option>
-                            </select>
-                        </div>
-                        <div class="form-group md:col-span-2"><label for="reservaFormObservacoes">Observações</label><textarea id="reservaFormObservacoes" rows="3"></textarea></div>
-                        </div>
+            
+            <form id="formEditarReserva" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="hidden" id="editReservaId">
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Matrícula:</label>
+                    <input type="text" id="editMatricula" class="w-full border border-gray-300 rounded px-3 py-2" required>
                 </div>
-                <div class="form-modal-footer">
-                    <button type="button" class="action-button secondary resFecharModalBtn">Cancelar</button>
-                    <button type="submit" class="action-button">Guardar Reserva</button>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nome Cliente:</label>
+                    <input type="text" id="editNomeCliente" class="w-full border border-gray-300 rounded px-3 py-2">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Data Entrada:</label>
+                    <input type="text" id="editDataEntrada" class="w-full border border-gray-300 rounded px-3 py-2" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Data Saída:</label>
+                    <input type="text" id="editDataSaida" class="w-full border border-gray-300 rounded px-3 py-2" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Valor:</label>
+                    <input type="number" id="editValor" step="0.01" class="w-full border border-gray-300 rounded px-3 py-2" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Estado:</label>
+                    <select id="editEstado" class="w-full border border-gray-300 rounded px-3 py-2" required>
+                        <option value="confirmada">Confirmada</option>
+                        <option value="pendente">Pendente</option>
+                        <option value="cancelada">Cancelada</option>
+                        <option value="concluida">Concluída</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Campanha:</label>
+                    <input type="text" id="editCampanha" class="w-full border border-gray-300 rounded px-3 py-2">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Observações:</label>
+                    <textarea id="editObservacoes" class="w-full border border-gray-300 rounded px-3 py-2"></textarea>
+                </div>
+                
+                <div class="md:col-span-2 mt-4 flex justify-end gap-2">
+                    <button type="button" id="btnCancelarEdicao" class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
+                        Salvar Alterações
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="reservaLogModal" class="log-modal-backdrop hidden">
-        <div class="log-modal-dialog">
-            <div class="log-modal-header">
-                <h5 class="log-modal-title">Histórico de Alterações da Reserva <span id="logReservaBookingId"></span></h5>
-                <button type="button" class="text-xl font-bold resFecharLogModalBtn">&times;</button>
-            </div>
-            <div class="log-modal-body">
-                <div class="table-container">
-                    <table id="reservaLogTable">
-                        <thead>
-                            <tr>
-                                <th>Data/Hora</th>
-                                <th>Utilizador</th>
-                                <th>Campo Alterado</th>
-                                <th>Valor Antigo</th>
-                                <th>Valor Novo</th>
-                                <th>Descrição</th>
-                            </tr>
-                        </thead>
-                        <tbody id="reservaLogTableBody">
-                            </tbody>
-                    </table>
-                </div>
-                <p id="reservaLogNenhumaMsg" class="content-placeholder hidden">Nenhum histórico de alterações para esta reserva.</p>
-            </div>
-            <div class="log-modal-footer">
-                <button type="button" class="action-button secondary resFecharLogModalBtn">Fechar</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="js/auth_global.js" defer></script>
-    <script src="js/reservas.js" defer></script>
-    </body>
+    <!-- Autenticação Global -->
+    <script src="js/auth_global.js"></script>
+    
+    <!-- Script específico da página -->
+    <script src="js/reservas.js"></script>
+</body>
 </html>
