@@ -337,8 +337,12 @@
             <section class="subapp-section">
                 <h3 class="subapp-section-title">Lista de Reservas</h3>
                 <div class="flex justify-between mb-4">
-                    <button id="resAbrirModalNovaBtn" class="action-button">Nova Reserva</button>
-                    <button id="resExportarBtn" class="action-button secondary">Exportar Lista</button>
+                    <div>
+                        <button id="resAbrirModalNovaBtn" class="action-button">Nova Reserva</button>
+                    </div>
+                    <div>
+                        <button id="resExportarBtn" class="action-button secondary">Exportar Lista</button>
+                    </div>
                 </div>
                 <div class="filters-grid">
                     <div>
@@ -368,7 +372,7 @@
                 </div>
                 <div id="loadingTableSpinner" class="loader hidden"></div>
                 <div class="table-container">
-                    <table>
+                    <table class="min-w-full">
                         <thead>
                             <tr>
                                 <th>Booking ID</th>
@@ -397,7 +401,7 @@
         </div>
     </div>
 
-    <!-- Modal para Criar/Editar Reserva -->
+    <!-- Modal de Formulário de Reserva -->
     <div id="reservaFormModal" class="form-modal-backdrop">
         <div class="form-modal-dialog">
             <div class="form-modal-header">
@@ -482,7 +486,7 @@
         </div>
     </div>
 
-    <!-- Modal para Histórico de Reserva -->
+    <!-- Modal de Log de Reserva -->
     <div id="reservaLogModal" class="log-modal-backdrop">
         <div class="log-modal-dialog">
             <div class="log-modal-header">
@@ -491,7 +495,7 @@
             </div>
             <div class="log-modal-body">
                 <div class="table-container">
-                    <table>
+                    <table class="min-w-full">
                         <thead>
                             <tr>
                                 <th>Data/Hora</th>
