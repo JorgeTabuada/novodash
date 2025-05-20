@@ -1,330 +1,216 @@
 /* css/style_principal.css */
-/* Estilos para o Dashboard Multipark */
-
-/* Reset e estilos base */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 body {
     font-family: 'Inter', sans-serif;
-    background-color: #f5f7fa;
-    color: #333;
-    line-height: 1.5;
+    background-color: #f0f2f5; /* Cinza claro de fundo */
+    color: #374151; /* Cinza escuro para texto */
+    margin: 0;
+    line-height: 1.6;
 }
 
-/* Utilitários */
 .hidden {
     display: none !important;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1rem;
-}
-
-.min-h-screen {
-    min-height: 100vh;
-}
-
-.flex {
-    display: flex;
-}
-
-.flex-col {
-    flex-direction: column;
-}
-
-.items-center {
-    align-items: center;
-}
-
-.justify-center {
-    justify-content: center;
-}
-
-.p-4 {
-    padding: 1rem;
-}
-
-.space-y-4 > * + * {
-    margin-top: 1rem;
-}
-
-.text-center {
-    text-align: center;
-}
-
-.text-red-500 {
-    color: #ef4444;
-}
-
-.text-sm {
-    font-size: 0.875rem;
-}
-
-.mt-3 {
-    margin-top: 0.75rem;
-}
-
-.mb-4 {
-    margin-bottom: 1rem;
-}
-
-.mb-6 {
-    margin-bottom: 1.5rem;
-}
-
-.mb-8 {
-    margin-bottom: 2rem;
-}
-
-.px-4 {
-    padding-left: 1rem;
-    padding-right: 1rem;
-}
-
-.py-2 {
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-}
-
-.px-8 {
-    padding-left: 2rem;
-    padding-right: 2rem;
-}
-
-.p-6 {
-    padding: 1.5rem;
-}
-
-.pb-2 {
-    padding-bottom: 0.5rem;
-}
-
-.rounded-md {
-    border-radius: 0.375rem;
-}
-
-.rounded-lg {
-    border-radius: 0.5rem;
-}
-
-.shadow-md {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.bg-white {
-    background-color: #fff;
-}
-
-.bg-red-500 {
-    background-color: #ef4444;
-}
-
-.hover\:bg-red-600:hover {
-    background-color: #dc2626;
-}
-
-.text-white {
-    color: #fff;
-}
-
-.text-blue-900 {
-    color: #0A2B5C;
-}
-
-.font-medium {
-    font-weight: 500;
-}
-
-.font-bold {
-    font-weight: 700;
-}
-
-.text-xl {
-    font-size: 1.25rem;
-}
-
-.border-b {
-    border-bottom-width: 1px;
-}
-
-.border-blue-900 {
-    border-color: #0A2B5C;
-}
-
-.transition-colors {
-    transition-property: color, background-color, border-color;
-    transition-duration: 150ms;
-}
-
-.grid {
-    display: grid;
-}
-
-.grid-cols-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.gap-4 {
-    gap: 1rem;
-}
-
-/* Estilos específicos */
+/* Logo Principal */
 .app-logo-styled {
-    display: flex;
-    align-items: center;
-    font-weight: bold;
-    font-size: 1.5rem;
+    font-size: 2rem; /* Aumentar um pouco */
+    font-weight: 700;
+    color: #0A2B5C; /* Azul corporativo escuro */
     margin-bottom: 2rem;
-}
-
-.logo-p-icon {
-    background-color: #0A2B5C;
-    color: white;
-    width: 40px;
-    height: 40px;
+    text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
-    margin-right: 0.5rem;
+    letter-spacing: 0.5px;
 }
 
-.logo-text-multipark {
-    color: #0A2B5C;
+.app-logo-styled .logo-p-icon {
+    background-color: #0A2B5C;
+    color: #ffffff;
+    padding: 4px 10px; /* Ajustar padding */
+    margin-right: 8px;
+    border-radius: 6px; /* Cantos mais arredondados */
+    font-family: 'Arial Black', Gadget, sans-serif; /* Fonte mais "bold" para o ícone */
+    font-size: 2.1rem; /* Tamanho do ícone */
+    line-height: 1; /* Para alinhar bem verticalmente */
 }
 
-#loginFormPrincipalContainer {
-    background-color: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.app-logo-styled .logo-text-multipark {
+    color: #0A2B5C; /* Manter cor do texto */
+}
+
+/* Container da Página de Login */
+#loginPagePrincipal {
+    /* min-h-screen flex flex-col items-center justify-center p-4 -- Tailwind classes já fazem isto */
+}
+
+/* Caixa de Login */
+#loginFormPrincipalContainer { /* Se usares um container em volta do form */
+    background-color: #ffffff;
+    padding: 2rem; /* Mais espaçamento interno */
+    border-radius: 0.5rem; /* 8px */
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Sombra mais pronunciada */
     width: 100%;
-    max-width: 400px;
+    max-width: 400px; /* Largura máxima da caixa de login */
 }
 
 #loginFormPrincipal label {
     display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
+    margin-bottom: 0.5rem; /* Espaço abaixo do label */
+    font-weight: 500; /* Medium */
+    color: #4B5563; /* Cinza um pouco mais escuro */
 }
 
-#loginFormPrincipal input {
+#loginFormPrincipal input[type="email"],
+#loginFormPrincipal input[type="password"] {
     width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
+    padding: 0.75rem 1rem; /* Padding interno dos inputs */
+    border: 1px solid #D1D5DB; /* Borda cinza clara */
+    border-radius: 0.375rem; /* 6px */
     font-size: 1rem;
+    margin-bottom: 1rem; /* Espaço abaixo de cada input */
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-#loginFormPrincipal button {
+#loginFormPrincipal input[type="email"]:focus,
+#loginFormPrincipal input[type="password"]:focus {
+    outline: none;
+    border-color: #3B82F6; /* Azul no focus */
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); /* Sombra de foco azul */
+}
+
+#loginFormPrincipal button[type="submit"] {
     width: 100%;
-    padding: 0.75rem;
-    background-color: #0A2B5C;
+    background-color: #2563EB; /* Azul mais vibrante */
     color: white;
-    border: none;
-    border-radius: 4px;
-    font-weight: 500;
-    cursor: pointer;
+    font-weight: 600; /* Semi-bold */
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
     transition: background-color 0.2s;
+    border: none;
+    cursor: pointer;
 }
 
-#loginFormPrincipal button:hover {
-    background-color: #051e42;
+#loginFormPrincipal button[type="submit"]:hover {
+    background-color: #1D4ED8; /* Azul mais escuro no hover */
 }
 
+#loginErrorMessagePrincipal {
+    /* text-red-500 text-sm mt-3 text-center hidden -- Tailwind */
+    /* Estilos adicionais se necessário */
+}
+
+/* Cabeçalho do Dashboard */
 .header-principal {
-    background-color: white;
-    padding: 1rem 2rem;
+    background-color: #ffffff;
+    padding: 1rem 1.5rem; /* Padding horizontal e vertical */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Sombra suave */
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem; /* Espaço abaixo do header */
+    position: sticky; /* Para fixar no topo ao rolar */
+    top: 0;
+    z-index: 50;
+}
+
+.header-principal .app-logo-styled {
+    margin-bottom: 0; /* Remover margem do logo no header */
+    font-size: 1.5rem; /* Reduzir tamanho do logo no header */
+}
+.header-principal .app-logo-styled .logo-p-icon {
+    font-size: 1.6rem; /* Ajustar ícone */
+    padding: 3px 8px;
 }
 
 .user-info-principal {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1rem; /* Espaço entre elementos de info do user */
 }
 
 .user-info-principal span {
     font-weight: 500;
+    color: #374151;
 }
 
-#parkSelectorPrincipal {
-    padding: 0.5rem 1rem;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    background-color: white;
-    font-size: 0.875rem;
+.user-info-principal select {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid #D1D5DB;
+    background-color: #F9FAFB; /* Fundo levemente cinza para o select */
+    font-size: 0.875rem; /* Texto menor no select */
+    min-width: 150px; /* Largura mínima para o seletor de parque */
 }
 
-#logoutButtonPrincipal, #logoutButtonFooter {
-    padding: 0.5rem 1rem;
-    background-color: #ef4444;
+.user-info-principal button#logoutButtonPrincipal {
+    background-color: #EF4444; /* Vermelho para logout */
     color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
     transition: background-color 0.2s;
+    border: none;
+    font-size: 0.875rem;
+    cursor: pointer;
 }
 
-#logoutButtonPrincipal:hover, #logoutButtonFooter:hover {
-    background-color: #dc2626;
+.user-info-principal button#logoutButtonPrincipal:hover {
+    background-color: #DC2626; /* Vermelho mais escuro no hover */
+}
+
+/* Grelha de Botões do Dashboard */
+.dashboard-grid-principal {
+    display: grid;
+    /* Tailwind: grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 */
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* Ajustar minmax para mais ou menos colunas */
+    gap: 1rem; /* Espaçamento entre botões */
+    padding: 1rem;
+    max-width: 1400px; /* Aumentar largura máxima do conteúdo do dashboard */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .subapp-button-principal {
+    background-color: #FFFFFF; /* Fundo branco para os botões */
+    color: #0A2B5C; /* Texto azul */
+    border: 1px solid #E5E7EB; /* Borda cinza clara */
+    border-radius: 0.5rem; /* 8px */
+    padding: 1.25rem 0.75rem; /* Padding interno */
+    text-align: center;
+    font-weight: 500; /* Medium */
+    font-size: 0.875rem; /* Tamanho da fonte */
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 1.5rem 1rem;
-    background-color: white;
-    color: #0A2B5C;
-    border: 1px solid #0A2B5C;
-    border-radius: 4px;
-    font-weight: 500;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    height: 100%;
+    min-height: 120px; /* Altura mínima dos botões */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    word-break: break-word;
+    line-height: 1.3;
 }
-
 .subapp-button-principal:hover {
-    background-color: #0A2B5C;
-    color: white;
+    background-color: #0A2B5C; /* Fundo azul no hover */
+    color: #FFFFFF; /* Texto branco no hover */
+    transform: translateY(-2px); /* Efeito de elevação suave */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
-
-.subapp-button-principal span {
-    font-size: 0.875rem;
+.subapp-button-principal span:first-child { /* Para o ícone emoji */
+    font-size: 1.75rem; /* Tamanho do ícone */
+    margin-bottom: 0.5rem;
+}
+.subapp-button-principal span:last-child { /* Para o nome da app */
+    font-size: 0.8rem; /* Nome da app ligeiramente menor */
     text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
-    .header-principal {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .user-info-principal {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .grid-cols-3 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 480px) {
-    .grid-cols-3 {
-        grid-template-columns: 1fr;
-    }
+/* Rodapé */
+footer {
+    /* text-center p-4 text-sm text-gray-500 mt-8 -- Tailwind */
+    border-top: 1px solid #e5e7eb; /* Linha separadora */
+    padding-top: 1rem;
+    margin-top: 2rem;
 }

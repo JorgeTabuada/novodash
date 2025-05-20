@@ -4,157 +4,679 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ferramentas Multipark</title>
-    <link rel="stylesheet" href="css/style_principal.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* Estilos combinados de novolayout.html e ajustes necessários */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Cinza claro de fundo */
+            color: #333;
+            margin: 0;
+            line-height: 1.6;
+        }
+        .app-container, .subapp-page { 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem; 
+        }
+        .main-content-container {
+            background-color: #f0f2f5; 
+            padding: 1rem; 
+            border-radius: 0.5rem; 
+            width: 100%;
+            max-width: 1200px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 2rem; 
+            margin-bottom: 2rem; 
+        }
+        .login-box {
+             background-color: #fff; 
+             padding: 2rem; 
+             border-radius: 0.5rem; 
+             box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+             width: 100%;
+             max-width: 400px; 
+        }
+        .app-logo-styled {
+            font-size: 1.85rem; 
+            font-weight: 700; 
+            color: #0A2B5C; 
+            margin-bottom: 2rem; 
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 0.5px;
+        }
+        .app-logo-styled .logo-p-icon {
+            background-color: #0A2B5C;
+            color: #fff;
+            padding: 4px 10px; 
+            margin-right: 6px; 
+            border-radius: 4px; 
+            font-family: 'Arial Black', Gadget, sans-serif; 
+            font-size: 1.9rem; 
+            line-height: 1; 
+        }
+        .app-logo-styled .logo-text-multipark {
+            color: #0A2B5C; 
+        }
+        .welcome-message {
+            font-size: 1.25rem; 
+            font-weight: 600; 
+            color: #333; 
+            margin-bottom: 1rem; 
+            text-align: center;
+        }
+        .park-selector-container {
+            margin-bottom: 1.5rem; 
+            width: 100%;
+            max-width: 320px; 
+        }
+        #parkSelector { 
+            width: 100%; 
+            padding: 0.65rem 1rem; 
+            border: 1px solid #ccc; 
+            border-radius: 0.375rem; 
+            background-color: #fff; 
+            font-size: 0.95rem; 
+            text-align: center;
+            appearance: none; 
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23333'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd' /%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.25em 1.25em;
+            padding-right: 2.5rem; 
+        }
+        #categoriesLayoutContainer {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr); 
+            gap: 1.5rem; 
+            width: 100%;
+            margin-bottom: 2rem; 
+        }
+        @media (min-width: 768px) { 
+            #categoriesLayoutContainer {
+                grid-template-columns: repeat(2, 1fr); 
+            }
+        }
+        .category-group {
+            padding: 1rem; 
+            background-color: #fff; 
+            border-radius: 0.5rem; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+            display: flex; 
+            flex-direction: column;
+            min-height: 200px; 
+        }
+        .category-title {
+            font-size: 1.1rem; 
+            font-weight: 600; 
+            color: #0A2B5C; 
+            margin-bottom: 1rem; 
+            padding-bottom: 0.5rem; 
+            border-bottom: 2px solid #0d6efd; 
+        }
+        .dashboard-grid { 
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
+            gap: 0.75rem; 
+            width: 100%;
+            flex-grow: 1; 
+        }
+        .subapp-button-dashboard {
+            background-color: #fff; 
+            color: #0d6efd; 
+            border: 1px solid #0d6efd; 
+            border-radius: 0.375rem; 
+            padding: 0.75rem 0.5rem; 
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+            font-size: 0.8rem; 
+            word-break: break-word;
+            font-weight: 600; 
+            line-height: 1.2;
+        }
+        .subapp-button-dashboard:hover {
+            background-color: #0d6efd; 
+            color: #fff; 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+        }
+        .logout-button-container {
+            width: 100%;
+            max-width: 320px; 
+            margin-top: 1rem; 
+        }
+        #logoutButton, .action-button { 
+            color: white;
+            font-weight: 500; 
+            padding: 0.6rem 1.2rem; 
+            border-radius: 0.375rem; 
+            transition: background-color 0.2s;
+            border: none;
+            cursor: pointer;
+            width: 100%; 
+        }
+        #logoutButton { 
+             background-color: #dc3545; 
+        }
+        #logoutButton:hover {
+            background-color: #c82333; 
+        }
+        #loginButton {
+             background-color: #0d6efd; 
+             color: white;
+             font-weight: 600; 
+             padding: 0.75rem; 
+        }
+        #loginButton:hover {
+            background-color: #0b5ed7; 
+        }
+        .action-button { 
+            background-color: #0d6efd; 
+            width: auto; 
+        }
+        .action-button:hover {
+            background-color: #0b5ed7; 
+        }
+        .action-button.secondary { 
+            background-color: #6c757d; 
+        }
+        .action-button.secondary:hover {
+            background-color: #5a6268; 
+        }
+        .subapp-header { 
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem; background-color: #fff; border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1.5rem;
+        }
+        .subapp-title { 
+            font-size: 1.5rem; font-weight: 600; color: #0A2B5C;
+        }
+        .subapp-section { 
+            width: 100%; background-color: #fff; padding: 1.5rem; border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1.5rem;
+        }
+        .subapp-section-title { 
+            font-size: 1.1rem; font-weight: 600; color: #333; margin-bottom: 1rem;
+            padding-bottom: 0.5rem; border-bottom: 1px solid #eee;
+        }
+        .filters-grid, .actions-container { 
+            display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; align-items: flex-end; 
+        }
+        .filters-grid > div { 
+            display: flex; flex-direction: column; flex-grow: 1; 
+        }
+        .filters-grid label { 
+            font-size: 0.875rem; margin-bottom: 0.25rem; color: #555;
+        }
+        .filters-grid input[type="text"], 
+        .filters-grid input[type="date"], 
+        .filters-grid input[type="datetime-local"],
+        .filters-grid select { 
+            padding: 0.5rem; border: 1px solid #ccc; border-radius: 0.25rem; font-size: 0.9rem; width: 100%;
+        }
+        .table-container { overflow-x: auto; margin-top: 1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 0.9em; }
+        th { background-color: #f2f2f2; font-weight: 600; }
+        .content-placeholder {
+            min-height: 150px; display: flex; align-items: center; justify-content: center;
+            border: 2px dashed #ddd; border-radius: 0.25rem; color: #777;
+            text-align: center; padding: 1rem;
+        }
+        .form-modal-backdrop, .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); display: flex;
+            align-items: center; justify-content: center; z-index: 1050;
+        }
+        .form-modal-dialog, .modal-content {
+            background-color: white; padding: 1.5rem; border-radius: 0.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 100%; max-width: 600px;
+        }
+        .modal-content { max-width: 400px; text-align: center; }
+        .form-modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 0.75rem; margin-bottom: 1rem; border-bottom: 1px solid #eee;
+        }
+        .form-modal-title { font-size: 1.25rem; font-weight: 600; }
+        .form-modal-body .form-group { margin-bottom: 1rem; }
+        .form-modal-body .form-group label { display: block; margin-bottom: 0.3rem; font-size: 0.875rem; font-weight:500; }
+        .form-modal-body .form-group input, 
+        .form-modal-body .form-group select, 
+        .form-modal-body .form-group textarea { 
+            width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 0.25rem; font-size: 0.9rem;
+        }
+        .form-modal-footer {
+            padding-top: 1rem; margin-top: 1rem; border-top: 1px solid #eee;
+            display: flex; justify-content: flex-end; gap: 0.75rem;
+        }
+        .hidden { display: none !important; }
+    </style>
+    
+    <script>
+        // Constantes para Supabase URL e Key
+        const SUPABASE_URL = 'https://ioftqsvjqwjeprsckeym.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvZnRxc3ZqcXdqZXByc2NrZXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxNTYwNzQsImV4cCI6MjA2MjczMjA3NH0.TXDfhioMFVNxLhjKgpXAxnKCPOl5n8QWpOkX2eafbYw';
+        
+        try {
+            window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log("Supabase client inicializado diretamente no HTML (index.html).");
+        } catch (error) {
+            console.error("ERRO CRÍTICO: Falha ao inicializar o cliente Supabase no HTML (index.html).", error);
+            alert("Erro crítico ao conectar com o sistema. Por favor, contacte o suporte.");
+        }
+        
+        window.getSupabaseClient = function() {
+            if (!window.supabase) {
+                console.error("ERRO CRÍTICO: Cliente Supabase não inicializado ou não disponível em getSupabaseClient() (index.html).");
+            }
+            return window.supabase;
+        };
+    </script>
 </head>
 <body>
-    <!-- Página de Login -->
-    <div id="loginPagePrincipal" class="min-h-screen flex flex-col items-center justify-center p-4">
-        <div class="app-logo-styled">
-            <span class="logo-p-icon">P</span>
-            <span class="logo-text-multipark">MULTIPARK</span>
-        </div>
-        <div id="loginFormPrincipalContainer">
-            <form id="loginFormPrincipal" class="space-y-4">
-                <div>
-                    <label for="emailPrincipal">Email</label>
-                    <input type="email" id="emailPrincipal" placeholder="o.seu@email.com" required>
-                </div>
-                <div>
-                    <label for="passwordPrincipal">Palavra-passe</label>
-                    <input type="password" id="passwordPrincipal" placeholder="********" required>
-                </div>
-                <button type="submit">Entrar</button>
-                <div id="loginErrorMessagePrincipal" class="text-red-500 text-sm mt-3 text-center hidden"></div>
-            </form>
-        </div>
-    </div>
 
-    <!-- Dashboard Principal -->
-    <div id="dashboardPagePrincipal" class="hidden">
-        <!-- Cabeçalho -->
-        <header class="header-principal">
+    <div id="loginPage" class="app-container flex justify-center items-center">
+        <div class="login-box">
             <div class="app-logo-styled">
-                <span class="logo-p-icon">P</span>
-                <span class="logo-text-multipark">MULTIPARK</span>
+                <span class="logo-p-icon">P</span><span class="logo-text-multipark">MULTIPARK</span>
             </div>
-            <div class="user-info-principal">
-                <span>BEM-VINDO DE VOLTA, <span id="userNamePrincipal">JORGE.G.TABUADA!</span></span>
-                <select id="parkSelectorPrincipal">
-                    <option>LISBOA</option>
+            <form id="loginForm">
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="email" name="email" required class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="o.seu@email.com">
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Palavra-passe</label>
+                    <input type="password" id="password" name="password" required class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="********">
+                </div>
+                <button type="submit" id="loginButton" class="w-full">Entrar</button>
+            </form>
+            <p id="loginErrorMessage" class="text-red-500 text-sm mt-3 text-center hidden"></p>
+        </div>
+    </div>
+
+    <div id="dashboardPage" class="app-container hidden">
+        <div class="main-content-container">
+            <div class="app-logo-styled">
+                <span class="logo-p-icon">P</span><span class="logo-text-multipark">MULTIPARK</span>
+            </div>
+            <div class="welcome-message">
+                BEM-VINDO DE VOLTA, <span id="userName">Utilizador</span>!
+            </div>
+            <div class="park-selector-container">
+                <label for="parkSelector" class="sr-only">Selecionar Parque</label>
+                <select id="parkSelector" name="parkSelector">
+                    <option value="lisboa">LISBOA</option>
+                    <option value="porto">PORTO</option>
+                    <option value="faro">FARO</option>
                 </select>
-                <button id="logoutButtonPrincipal">Sair</button>
             </div>
-        </header>
-
-        <!-- Conteúdo do Dashboard -->
-        <div class="container mx-auto px-4">
-            <!-- Operacional -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-xl font-bold text-blue-900 mb-4 border-b border-blue-900 pb-2">Operacional</h2>
-                <div class="grid grid-cols-3 gap-4">
-                    <button class="subapp-button-principal" data-app-id="caixa_multipark">
-                        <span>Caixa Multipark</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="cancelamentos">
-                        <span>Cancelamentos</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="confirmacao_caixa">
-                        <span>Confirmação de Caixa</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="entregas">
-                        <span>Entregas</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="recolhas">
-                        <span>Recolhas</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="reservas">
-                        <span>Reservas</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Gestão -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-xl font-bold text-blue-900 mb-4 border-b border-blue-900 pb-2">Gestão</h2>
-                <div class="grid grid-cols-3 gap-4">
-                    <button class="subapp-button-principal" data-app-id="despesas">
-                        <span>Despesas</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="faturacao">
-                        <span>Faturação</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="horarios_ordenados">
-                        <span>Horários & Ordenados</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="projetos">
-                        <span>Projetos</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="tarefas">
-                        <span>Tarefas</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Administração e Suporte -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-xl font-bold text-blue-900 mb-4 border-b border-blue-900 pb-2">Administração e Suporte</h2>
-                <div class="grid grid-cols-3 gap-4">
-                    <button class="subapp-button-principal" data-app-id="acessos_alteracoes">
-                        <span>Acessos e Alterações</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="auditorias_internas">
-                        <span>Auditorias Internas</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="comentarios_reclamacoes">
-                        <span>Comentários & Reclamações</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="formacao_apoio">
-                        <span>Formação & Apoio</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="perdidos_achados">
-                        <span>Perdidos & Achados</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Análises -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-xl font-bold text-blue-900 mb-4 border-b border-blue-900 pb-2">Análises</h2>
-                <div class="grid grid-cols-3 gap-4">
-                    <button class="subapp-button-principal" data-app-id="bi_interno">
-                        <span>BI Interno</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="comportamentos">
-                        <span>Comportamentos</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="mapa_ocupacao">
-                        <span>Mapa de Ocupação</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="marketing">
-                        <span>Marketing</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="produtividade_condutores">
-                        <span>Produtividade Condutores</span>
-                    </button>
-                    <button class="subapp-button-principal" data-app-id="relatorios">
-                        <span>Relatórios</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Botão de Sair -->
-            <div class="text-center mb-8">
-                <button id="logoutButtonFooter" class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-8 rounded-md transition-colors">
-                    Sair
-                </button>
+            <main id="categoriesLayoutContainer" class="w-full">
+                <div id="categoryCell-operacional" class="category-group-placeholder"></div>
+                <div id="categoryCell-gestao" class="category-group-placeholder"></div>
+                <div id="categoryCell-admin_suporte" class="category-group-placeholder"></div>
+                <div id="categoryCell-analises" class="category-group-placeholder"></div>
+            </main>
+            <div class="logout-button-container">
+                <button id="logoutButton" class="w-full">Sair</button>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="js/supabaseClient.js"></script>
-    <script src="js/auth_global.js"></script>
-    <script src="js/app_principal.js"></script>
+    <div id="despesasPage" class="subapp-page hidden w-full max-w-6xl mx-auto">
+        {...}
+    </div>
+    <div id="tarefasPage" class="subapp-page hidden w-full max-w-6xl mx-auto">
+        {...}
+    </div>
+    <div id="projetosPage" class="subapp-page hidden w-full max-w-6xl mx-auto">
+        {...}
+    </div>
+    <div id="recolhasPage" class="subapp-page hidden w-full max-w-6xl mx-auto">
+        {...}
+    </div>
+     <div id="reservasPage" class="subapp-page hidden w-full max-w-6xl mx-auto">
+        {...}
+    </div>
+
+    <div id="messageModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modalTitle" class="text-xl font-semibold mb-4">Mensagem</h2>
+            <p id="modalMessageText" class="mb-6">Este é um texto de exemplo para a modal.</p>
+            <button id="modalCloseButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Fechar</button>
+        </div>
+    </div>
+    
+    <div id="despesaFormModal" class="form-modal-backdrop hidden">{...}</div>
+    <div id="tarefaFormModal" class="form-modal-backdrop hidden">{...}</div>
+    <div id="projetoFormModal" class="form-modal-backdrop hidden">{...}</div>
+    <div id="recolhaFormModal" class="form-modal-backdrop hidden">{...}</div>
+    <div id="reservaFormModal" class="form-modal-backdrop hidden">{...}</div>
+
+    <script src="js/auth_global.js" defer></script>
+    <script>
+        // Lógica principal da página index.html (v1.1 - Lógica de UI Ajustada)
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM completamente carregado e analisado (index.html v1.1).");
+
+            const loginPage = document.getElementById('loginPage');
+            const dashboardPage = document.getElementById('dashboardPage');
+            const loginForm = document.getElementById('loginForm');
+            const loginErrorMessage = document.getElementById('loginErrorMessage');
+            const logoutButton = document.getElementById('logoutButton');
+            const userNameDisplay = document.getElementById('userName');
+            const parkSelector = document.getElementById('parkSelector');
+            const categoriesLayoutContainer = document.getElementById('categoriesLayoutContainer');
+            
+            const messageModal = document.getElementById('messageModal');
+            const modalTitleEl = document.getElementById('modalTitle');
+            const modalMessageTextEl = document.getElementById('modalMessageText');
+            const modalCloseButton = document.getElementById('modalCloseButton');
+
+            // Definição das Subaplicações (agora todas navegam para ficheiros externos)
+            const subApps = [
+                { id: 'recolhas', name: 'Recolhas', category: 'Operacional' }, 
+                { id: 'entregas', name: 'Entregas', category: 'Operacional' }, 
+                { id: 'caixa_multipark', name: 'Caixa Multipark', category: 'Operacional' }, 
+                { id: 'cancelamentos', name: 'Cancelamentos', category: 'Operacional' }, 
+                { id: 'reservas', name: 'Reservas', category: 'Operacional' },
+                { id: 'confirmacao_caixa', name: 'Confirmação de Caixa', category: 'Operacional' }, 
+                { id: 'marketing', name: 'Marketing', category: 'Análises' },
+                { id: 'relatorios', name: 'Relatórios', category: 'Análises' },
+                { id: 'produtividade_condutores', name: 'Produtividade Condutores', category: 'Análises' },
+                { id: 'comportamentos', name: 'Comportamentos', category: 'Análises' },
+                { id: 'mapa_ocupacao', name: 'Mapa de Ocupação', category: 'Análises' },
+                { id: 'bi_interno', name: 'BI Interno', category: 'Análises' },
+                { id: 'despesas', name: 'Despesas', category: 'Gestão' },
+                { id: 'faturacao', name: 'Faturação', category: 'Gestão' },
+                { id: 'horarios_ordenados', name: 'Horários & Ordenados', category: 'Gestão' },
+                { id: 'projetos', name: 'Projetos', category: 'Gestão' },
+                { id: 'tarefas', name: 'Tarefas', category: 'Gestão' },   
+                { id: 'formacao_apoio', name: 'Formação & Apoio', category: 'Administração e Suporte' },
+                { id: 'perdidos_achados', name: 'Perdidos & Achados', category: 'Administração e Suporte' },
+                { id: 'comentarios_reclamacoes', name: 'Comentários & Reclamações', category: 'Administração e Suporte' },
+                { id: 'auditorias_internas', name: 'Auditorias Internas', category: 'Administração e Suporte' },
+                { id: 'acessos_alteracoes', name: 'Acessos e Alterações', category: 'Administração e Suporte' }
+            ];
+            
+            const fileNameMapping = {
+                'recolhas': 'recolhas.html', 
+                'reservas': 'reservas.html', 
+                'despesas': 'despesas.html', 
+                'tarefas': 'tarefas.html',   
+                'projetos': 'projetos.html', 
+                'entregas': 'entregas_v2.html', 
+                'caixa_multipark': 'Caixa Multipark.html',
+                'cancelamentos': 'cancelamentos_v2.html', 
+                'confirmacao_caixa': 'confirmacao_caixa_v2.html', 
+                'marketing': 'marketing.html', 
+                'relatorios': 'relatorios.html',
+                'produtividade_condutores': 'produtividade_condutores.html',
+                'comportamentos': 'comportamentos.html',
+                'mapa_ocupacao': 'mapa_ocupacao.html',
+                'bi_interno': 'bi_interno.html',
+                'faturacao': 'gestao_faturas.html', 
+                'horarios_ordenados': 'horarios_ordenados.html',
+                'formacao_apoio': 'formacao_apoio.html',
+                'perdidos_achados': 'perdidos_achados.html',
+                'comentarios_reclamacoes': 'gestao_reclamacoes.html', 
+                'auditorias_internas': 'auditorias_internas.html',
+                'acessos_alteracoes': 'gestao_utilizadores.html' 
+            };
+
+            const categoryCellMapping = {
+                'Operacional':'categoryCell-operacional',
+                'Gestão':'categoryCell-gestao',
+                'Administração e Suporte':'categoryCell-admin_suporte',
+                'Análises':'categoryCell-analises'
+            };
+            const orderedCategoryNames = ['Operacional', 'Gestão', 'Análises', 'Administração e Suporte'];
+
+            function showModalMessage(title, message) {
+                if(modalTitleEl) modalTitleEl.textContent = title;
+                if(modalMessageTextEl) modalMessageTextEl.textContent = message;
+                if(messageModal) messageModal.classList.remove('hidden');
+            }
+            function closeModalMessage() {
+                if(messageModal) messageModal.classList.add('hidden');
+            }
+            if(modalCloseButton) modalCloseButton.addEventListener('click', closeModalMessage);
+            if(messageModal) messageModal.addEventListener('click', (event) => { 
+                if (event.target === messageModal) closeModalMessage(); 
+            });
+
+            // Função para mostrar a página principal (Login ou Dashboard)
+            // Esta função é chamada por auth_global.js
+            window.showPagePrincipal = function(pageName) {
+                console.log("index.html - showPagePrincipal chamada com:", pageName);
+                if (!loginPage || !dashboardPage) {
+                    console.error("index.html - Elementos loginPage ou dashboardPage não encontrados.");
+                    return;
+                }
+                loginPage.classList.add('hidden');
+                dashboardPage.classList.add('hidden');
+                // As secções de subaplicações internas (despesasPage, etc.) já não são geridas aqui para visibilidade.
+
+                if (pageName === 'login') {
+                    console.log("index.html - Mostrando página de LOGIN.");
+                    loginPage.classList.remove('hidden');
+                } else if (pageName === 'dashboard') {
+                    console.log("index.html - Mostrando página de DASHBOARD.");
+                    dashboardPage.classList.remove('hidden');
+                    // Atualizar o conteúdo do dashboard quando ele é mostrado
+                    updateDashboardHeader();
+                    renderDashboardSubAppButtons();
+                } else {
+                    console.warn("index.html - showPagePrincipal: Página desconhecida:", pageName, ". Mostrando login por defeito.");
+                    loginPage.classList.remove('hidden');
+                }
+            }
+            
+            function renderDashboardSubAppButtons() {
+                if (!categoriesLayoutContainer) {
+                    console.error("index.html - categoriesLayoutContainer não encontrado.");
+                    return;
+                }
+                console.log("index.html - Renderizando botões do dashboard...");
+                document.querySelectorAll('.category-group-placeholder').forEach(ph => ph.innerHTML = '');
+
+                const appsByCategory = subApps.reduce((acc, app) => {
+                    if (!acc[app.category]) acc[app.category] = [];
+                    acc[app.category].push(app);
+                    return acc;
+                }, {});
+
+                orderedCategoryNames.forEach(categoryName => {
+                    const cellId = categoryCellMapping[categoryName];
+                    const targetCell = document.getElementById(cellId);
+
+                    if (targetCell && appsByCategory[categoryName] && appsByCategory[categoryName].length > 0) {
+                        targetCell.innerHTML = ''; 
+                        const catDiv = document.createElement('div'); 
+                        catDiv.className = 'category-group';
+                        
+                        const title = document.createElement('h2'); 
+                        title.className = 'category-title'; 
+                        title.textContent = categoryName; 
+                        catDiv.appendChild(title);
+                        
+                        const gridDiv = document.createElement('div'); 
+                        gridDiv.className = 'dashboard-grid';
+                        
+                        appsByCategory[categoryName].sort((a,b) => a.name.localeCompare(b.name)).forEach(app => {
+                            const btn = document.createElement('button'); 
+                            btn.className = 'subapp-button-dashboard';
+                            btn.dataset.appId = app.id; 
+                            btn.textContent = app.name;
+                            btn.addEventListener('click', () => navigateToSubAppPage(app.id));
+                            gridDiv.appendChild(btn);
+                        });
+                        catDiv.appendChild(gridDiv); 
+                        targetCell.appendChild(catDiv);
+                    } else if (targetCell) {
+                         targetCell.innerHTML = `<div class="category-group"><h2 class="category-title">${categoryName}</h2><p class="text-xs text-gray-500 p-4">Sem aplicações nesta categoria.</p></div>`;
+                    }
+                });
+            }
+            
+            function navigateToSubAppPage(appId) {
+                console.log(`index.html - Navegando para subaplicação (externa): ${appId}`);
+                const fileName = fileNameMapping[appId] || `${appId}.html`;
+                
+                if (fileName) {
+                    console.log(`index.html - Redirecionando para: ${fileName}`);
+                    window.location.href = fileName;
+                } else {
+                    showModalMessage('Erro de Navegação', `Ficheiro não configurado para '${appId}'.`);
+                    console.error(`index.html - Nome de ficheiro não determinado para appId: ${appId}.`);
+                }
+            }
+
+            async function handleUserLogin(event) {
+                event.preventDefault();
+                console.log("index.html - Tentativa de login iniciada pelo formulário.");
+                const emailInput = document.getElementById('email');
+                const passwordInput = document.getElementById('password');
+                const email = emailInput ? emailInput.value : null;
+                const password = passwordInput ? passwordInput.value : null;
+
+                if (loginErrorMessage) {
+                    loginErrorMessage.classList.add('hidden');
+                    loginErrorMessage.textContent = '';
+                }
+
+                if (!email || !password) {
+                    if (loginErrorMessage) {
+                        loginErrorMessage.textContent = "Email e Palavra-passe são obrigatórios.";
+                        loginErrorMessage.classList.remove('hidden');
+                    }
+                    return;
+                }
+
+                if (typeof window.signInUser === 'function') {
+                    const success = await window.signInUser(email, password);
+                    if (success) {
+                        // A transição para o dashboard e atualização da UI
+                        // será agora gerida pelo evento 'SIGNED_IN' em auth_global.js,
+                        // que chama checkAuthStatus, que por sua vez chama showPagePrincipal('dashboard').
+                        console.log("index.html - signInUser retornou sucesso. Aguardando onAuthStateChange para atualizar UI.");
+                    } else {
+                        if (loginErrorMessage) {
+                            loginErrorMessage.textContent = "Email ou palavra-passe inválidos. Tente novamente.";
+                            loginErrorMessage.classList.remove('hidden');
+                        }
+                    }
+                } else {
+                    console.error("index.html - Função signInUser não definida.");
+                    if (loginErrorMessage) {
+                        loginErrorMessage.textContent = "Erro no sistema de login. Contacte o suporte.";
+                        loginErrorMessage.classList.remove('hidden');
+                    }
+                }
+            }
+
+            function updateDashboardHeader() {
+                console.log("index.html - Atualizando cabeçalho do dashboard...");
+                const userProfileString = localStorage.getItem('userProfile');
+                if (!userProfileString) {
+                    console.warn("index.html - Perfil do utilizador não encontrado no localStorage para updateDashboardHeader.");
+                    if(userNameDisplay) userNameDisplay.textContent = 'UTILIZADOR';
+                    return;
+                }
+                try {
+                    const userProfile = JSON.parse(userProfileString);
+                    const userName = userProfile.full_name || userProfile.email?.split('@')[0] || 'UTILIZADOR';
+                    if (userNameDisplay) userNameDisplay.textContent = userName.toUpperCase();
+                    console.log("index.html - Nome do utilizador atualizado para:", userName.toUpperCase());
+                } catch (e) {
+                    console.error("index.html - Erro ao parsear userProfile do localStorage:", e);
+                    if(userNameDisplay) userNameDisplay.textContent = 'UTILIZADOR';
+                }
+
+                const selPark = localStorage.getItem('multiparkSelectedPark');
+                if (parkSelector) {
+                    if (selPark && parkSelector.querySelector(`option[value="${selPark}"]`)) {
+                        parkSelector.value = selPark;
+                    } else if (parkSelector.options.length > 0) {
+                        parkSelector.value = parkSelector.options[0].value;
+                        localStorage.setItem('multiparkSelectedPark', parkSelector.value);
+                    }
+                }
+            }
+            
+            // --- Event Listeners ---
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleUserLogin);
+            } else {
+                console.error("index.html - Elemento loginForm não encontrado.");
+            }
+
+            if (logoutButton) {
+                logoutButton.addEventListener('click', async () => {
+                    console.log("index.html - Botão de logout clicado.");
+                    if (typeof window.handleLogoutGlobal === 'function') {
+                        await window.handleLogoutGlobal(); 
+                    } else {
+                        console.error("index.html - Função handleLogoutGlobal não definida.");
+                        localStorage.clear();
+                        window.showPagePrincipal('login'); // Fallback
+                    }
+                });
+            } else {
+                console.error("index.html - Elemento logoutButton não encontrado.");
+            }
+
+            if (parkSelector) {
+                parkSelector.addEventListener('change', (event) => {
+                    localStorage.setItem('multiparkSelectedPark', event.target.value);
+                    showModalMessage('Informação', `Parque alterado para: ${event.target.value.toUpperCase()}`);
+                    window.dispatchEvent(new CustomEvent('parkChanged', { detail: { parkId: event.target.value } }));
+                });
+            }
+
+            // --- Inicialização da Aplicação ---
+            async function initializeApp() {
+                console.log("index.html - Iniciando initializeApp...");
+                if (typeof window.checkAuthStatus === 'function') {
+                    // A chamada a checkAuthStatus aqui irá determinar se mostra login ou dashboard.
+                    // Se mostrar dashboard, a própria showPagePrincipal('dashboard') tratará de
+                    // chamar updateDashboardHeader e renderDashboardSubAppButtons.
+                    await window.checkAuthStatus(); 
+                } else {
+                    console.error("index.html - Função checkAuthStatus não definida na inicialização. Mostrando login por defeito.");
+                    window.showPagePrincipal('login'); // Fallback
+                }
+                console.log("index.html - initializeApp concluída.");
+            }
+            
+            // O auth_global.js já tem um listener onAuthStateChange que chama checkAuthStatus
+            // para o evento INITIAL_SESSION. Portanto, a chamada explícita a initializeApp()
+            // pode ser redundante se o listener já tratar da carga inicial.
+            // Vamos manter o setTimeout para garantir que tudo está pronto.
+            setTimeout(() => {
+                 initializeApp(); // Esta chamada irá despoletar a lógica de verificação inicial.
+            }, 250); // Pequeno delay para garantir que auth_global.js está carregado e o listener configurado.
+
+        }); 
+    </script>
 </body>
 </html>

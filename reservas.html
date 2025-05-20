@@ -9,8 +9,30 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- Importar o cliente Supabase centralizado -->
-    <script src="js/supabaseClient.js"></script>
+    <script>
+        // Define as tuas credenciais Supabase aqui
+        const SUPABASE_URL = 'https://ioftqsvjqwjeprsckeym.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvZnRxc3ZqcXdqZXByc2NrZXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxNTYwNzQsImV4cCI6MjA2MjczMjA3NH0.TXDfhioMFVNxLhjKgpXAxnKCPOl5n8QWpOkX2eafbYw';
+
+        try {
+            if (typeof supabase !== 'undefined' && supabase.createClient) {
+                window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log("Supabase client inicializado diretamente no HTML (Reservas).");
+
+                window.getSupabaseClient = function() {
+                    if (!window.supabase) {
+                        console.error("ERRO CRÍTICO: Cliente Supabase não inicializado (Reservas).");
+                    }
+                    return window.supabase;
+                };
+            } else {
+                throw new Error("Biblioteca Supabase (supabase.createClient) não definida.");
+            }
+        } catch (error) {
+            console.error("ERRO CRÍTICO: Falha ao inicializar Supabase (Reservas).", error);
+            alert("Erro crítico ao conectar com o sistema (Reservas). Contacte o suporte.");
+        }
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
@@ -127,6 +149,8 @@
         input[type="file"].file-input-styled {
             cursor: pointer;
         }
+        /* Esconder o input de ficheiro real se usarmos um label estilizado para o acionar */
+        /* input[type="file"]#importReservasFile { display: none; } */
 
         .action-button { 
             background-color: #0d6efd; 
@@ -330,49 +354,36 @@
                         <label for="resSearchTerm">Termo de Pesquisa (ID, Matrícula, Alocation, Cliente):</label>
                         <input type="text" id="resSearchTerm" placeholder="Insira para pesquisar...">
                     </div>
-                    <button id="resSearchBtn" class="action-button">Pesquisar</button>
+                    <button id="resSearchBtn" class="action-button">Procurar</button>
                 </div>
             </section>
 
             <section class="subapp-section">
-                <h3 class="subapp-section-title">Lista de Reservas</h3>
-                <div class="flex justify-between mb-4">
-                    <div>
-                        <button id="resAbrirModalNovaBtn" class="action-button">Nova Reserva</button>
-                    </div>
-                    <div>
-                        <button id="resExportarBtn" class="action-button secondary">Exportar Lista</button>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="subapp-section-title !mb-0">Lista de Reservas</h3>
+                    <div class="actions-container !mb-0">
+                        <button id="resAbrirModalNovaBtn" class="action-button">Nova Reserva Manual</button>
+                        <button id="resExportarBtn" class="action-button secondary">Exportar Lista (CSV)</button>
                     </div>
                 </div>
-                <div class="filters-grid">
+                <div class="filters-grid"> <div><label for="resFiltroClienteLista">Cliente</label><input type="text" id="resFiltroClienteLista" placeholder="Nome ou Email..."></div>
+                    <div><label for="resFiltroMatriculaLista">Matrícula</label><input type="text" id="resFiltroMatriculaLista" placeholder="AA-00-BB..."></div>
+                    <div><label for="resFiltroDataEntradaLista">Data Entrada (a partir de)</label><input type="date" id="resFiltroDataEntradaLista"></div>
                     <div>
-                        <label for="resFiltroClienteLista">Cliente:</label>
-                        <input type="text" id="resFiltroClienteLista" placeholder="Nome do cliente...">
-                    </div>
-                    <div>
-                        <label for="resFiltroMatriculaLista">Matrícula:</label>
-                        <input type="text" id="resFiltroMatriculaLista" placeholder="Matrícula...">
-                    </div>
-                    <div>
-                        <label for="resFiltroDataEntradaLista">Data Entrada (após):</label>
-                        <input type="date" id="resFiltroDataEntradaLista">
-                    </div>
-                    <div>
-                        <label for="resFiltroEstadoLista">Estado:</label>
+                        <label for="resFiltroEstadoLista">Estado</label>
                         <select id="resFiltroEstadoLista">
                             <option value="">Todos</option>
                             <option value="Confirmada">Confirmada</option>
                             <option value="Pendente">Pendente</option>
                             <option value="Cancelada">Cancelada</option>
                             <option value="Concluída">Concluída</option>
-                            <option value="Em Curso">Em Curso</option>
+                            <option value="Em Curso">Em Curso</option> 
                         </select>
                     </div>
-                    <button id="resAplicarFiltrosListaBtn" class="action-button">Aplicar Filtros</button>
+                    <button id="resAplicarFiltrosListaBtn" class="action-button">Filtrar Lista</button>
                 </div>
-                <div id="loadingTableSpinner" class="loader hidden"></div>
                 <div class="table-container">
-                    <table class="min-w-full">
+                    <table id="reservasTable">
                         <thead>
                             <tr>
                                 <th>Booking ID</th>
@@ -380,8 +391,8 @@
                                 <th>Cliente</th>
                                 <th>Matrícula</th>
                                 <th>Alocation</th>
-                                <th>Check-in</th>
-                                <th>Check-out</th>
+                                <th>Entrada Prev.</th>
+                                <th>Saída Prev.</th>
                                 <th>Parque</th>
                                 <th>Valor</th>
                                 <th>Estado</th>
@@ -389,134 +400,91 @@
                             </tr>
                         </thead>
                         <tbody id="reservasTableBody">
-                            <!-- Dados serão inseridos dinamicamente pelo JavaScript -->
-                        </tbody>
+                            </tbody>
                     </table>
-                    <p id="reservasNenhumaMsg" class="text-center py-4 text-gray-500 hidden">Nenhuma reserva encontrada.</p>
                 </div>
-                <div id="reservasPaginacao" class="flex justify-center mt-4 space-x-1">
-                    <!-- Paginação será inserida dinamicamente pelo JavaScript -->
-                </div>
+                <p id="reservasNenhumaMsg" class="content-placeholder hidden">Nenhuma reserva encontrada com os filtros atuais.</p>
+                 <div id="reservasPaginacao" class="mt-4 flex justify-center items-center gap-2"></div>
             </section>
         </div>
     </div>
 
-    <!-- Modal de Formulário de Reserva -->
-    <div id="reservaFormModal" class="form-modal-backdrop">
+    <div id="reservaFormModal" class="form-modal-backdrop hidden">
         <div class="form-modal-dialog">
             <div class="form-modal-header">
-                <h3 id="reservaFormModalTitle" class="form-modal-title">Nova Reserva</h3>
-                <button type="button" class="resFecharModalBtn text-gray-500 hover:text-gray-700">&times;</button>
+                <h5 class="form-modal-title" id="reservaFormModalTitle">Nova Reserva</h5>
+                <button type="button" class="text-xl font-bold resFecharModalBtn">&times;</button>
             </div>
-            <div class="form-modal-body">
-                <form id="reservaForm">
-                    <input type="hidden" id="reservaFormId">
+            <form id="reservaForm">
+                <div class="form-modal-body">
+                    <input type="hidden" id="reservaFormId"> 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-group">
-                            <label for="reservaFormBookingId">Booking ID:</label>
-                            <input type="text" id="reservaFormBookingId" required>
+                        <div class="form-group"><label for="reservaFormBookingId">Booking ID (Opcional)</label><input type="text" id="reservaFormBookingId" placeholder="Ex: MPK-XXXXXX"></div>
+                        <div class="form-group"><label for="reservaFormDataReserva">Data da Reserva</label><input type="datetime-local" id="reservaFormDataReserva" required></div>
+                        <div class="form-group"><label for="reservaFormNomeCliente">Nome Cliente</label><input type="text" id="reservaFormNomeCliente" required></div>
+                        <div class="form-group"><label for="reservaFormEmailCliente">Email Cliente</label><input type="email" id="reservaFormEmailCliente"></div>
+                        <div class="form-group"><label for="reservaFormTelefoneCliente">Telefone Cliente</label><input type="tel" id="reservaFormTelefoneCliente"></div>
+                        <div class="form-group"><label for="reservaFormMatricula">Matrícula</label><input type="text" id="reservaFormMatricula" placeholder="AA-00-BB"></div>
+                        <div class="form-group"><label for="reservaFormAlocation">Alocation</label><input type="text" id="reservaFormAlocation" required></div>
+                        <div class="form-group"><label for="reservaFormDataEntrada">Entrada Prevista</label><input type="datetime-local" id="reservaFormDataEntrada" required></div>
+                        <div class="form-group"><label for="reservaFormDataSaida">Saída Prevista</label><input type="datetime-local" id="reservaFormDataSaida" required></div>
+                        <div class="form-group"><label for="reservaFormParque">Parque</label>
+                            <select id="reservaFormParque" required><option value="lisboa">Lisboa</option><option value="porto">Porto</option><option value="faro">Faro</option></select>
                         </div>
-                        <div class="form-group">
-                            <label for="reservaFormDataReserva">Data da Reserva:</label>
-                            <input type="datetime-local" id="reservaFormDataReserva" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="reservaFormNomeCliente">Nome do Cliente:</label>
-                            <input type="text" id="reservaFormNomeCliente" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="reservaFormEmailCliente">Email do Cliente:</label>
-                            <input type="email" id="reservaFormEmailCliente">
-                        </div>
-                        <div class="form-group">
-                            <label for="reservaFormTelefoneCliente">Telefone do Cliente:</label>
-                            <input type="tel" id="reservaFormTelefoneCliente">
-                        </div>
-                        <div class="form-group">
-                            <label for="reservaFormMatricula">Matrícula:</label>
-                            <input type="text" id="reservaFormMatricula" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="reservaFormAlocation">Alocation:</label>
-                            <input type="text" id="reservaFormAlocation">
-                        </div>
-                        <div class="form-group">
-                            <label for="reservaFormDataEntrada">Data de Entrada:</label>
-                            <input type="datetime-local" id="reservaFormDataEntrada" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="reservaFormDataSaida">Data de Saída:</label>
-                            <input type="datetime-local" id="reservaFormDataSaida" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="reservaFormParque">Parque:</label>
-                            <select id="reservaFormParque" required>
-                                <!-- Opções serão carregadas dinamicamente -->
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="reservaFormCampanha">Campanha:</label>
-                            <input type="text" id="reservaFormCampanha">
-                        </div>
-                        <div class="form-group">
-                            <label for="reservaFormValor">Valor Total:</label>
-                            <input type="number" id="reservaFormValor" step="0.01" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="reservaFormEstado">Estado:</label>
+                        <div class="form-group"><label for="reservaFormCampanha">Campanha (Opcional)</label><input type="text" id="reservaFormCampanha" placeholder="Ex: VERAO2025"></div>
+                        <div class="form-group"><label for="reservaFormValor">Valor Estimado (€)</label><input type="number" id="reservaFormValor" step="0.01" min="0"></div>
+                        <div class="form-group md:col-span-2"><label for="reservaFormEstado">Estado</label>
                             <select id="reservaFormEstado" required>
-                                <option value="Confirmada">Confirmada</option>
                                 <option value="Pendente">Pendente</option>
+                                <option value="Confirmada" selected>Confirmada</option>
                                 <option value="Cancelada">Cancelada</option>
-                                <option value="Concluída">Concluída</option>
                                 <option value="Em Curso">Em Curso</option>
+                                <option value="Concluída">Concluída</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="form-group mt-4">
-                        <label for="reservaFormObservacoes">Observações:</label>
-                        <textarea id="reservaFormObservacoes" rows="3"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="form-modal-footer">
-                <button type="button" class="resFecharModalBtn action-button secondary">Cancelar</button>
-                <button type="button" id="reservaFormSalvarBtn" class="action-button">Salvar</button>
-            </div>
+                        <div class="form-group md:col-span-2"><label for="reservaFormObservacoes">Observações</label><textarea id="reservaFormObservacoes" rows="3"></textarea></div>
+                        </div>
+                </div>
+                <div class="form-modal-footer">
+                    <button type="button" class="action-button secondary resFecharModalBtn">Cancelar</button>
+                    <button type="submit" class="action-button">Guardar Reserva</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Modal de Log de Reserva -->
-    <div id="reservaLogModal" class="log-modal-backdrop">
+    <div id="reservaLogModal" class="log-modal-backdrop hidden">
         <div class="log-modal-dialog">
             <div class="log-modal-header">
-                <h3 class="log-modal-title">Histórico da Reserva <span id="logReservaBookingId"></span></h3>
-                <button type="button" class="resFecharLogModalBtn text-gray-500 hover:text-gray-700">&times;</button>
+                <h5 class="log-modal-title">Histórico de Alterações da Reserva <span id="logReservaBookingId"></span></h5>
+                <button type="button" class="text-xl font-bold resFecharLogModalBtn">&times;</button>
             </div>
             <div class="log-modal-body">
                 <div class="table-container">
-                    <table class="min-w-full">
+                    <table id="reservaLogTable">
                         <thead>
                             <tr>
                                 <th>Data/Hora</th>
                                 <th>Utilizador</th>
-                                <th>Ação</th>
-                                <th>Detalhes</th>
+                                <th>Campo Alterado</th>
+                                <th>Valor Antigo</th>
+                                <th>Valor Novo</th>
+                                <th>Descrição</th>
                             </tr>
                         </thead>
                         <tbody id="reservaLogTableBody">
-                            <!-- Dados serão inseridos dinamicamente pelo JavaScript -->
-                        </tbody>
+                            </tbody>
                     </table>
-                    <p id="reservaLogNenhumaMsg" class="text-center py-4 text-gray-500 hidden">Nenhum registo de histórico encontrado.</p>
                 </div>
+                <p id="reservaLogNenhumaMsg" class="content-placeholder hidden">Nenhum histórico de alterações para esta reserva.</p>
             </div>
             <div class="log-modal-footer">
-                <button type="button" class="resFecharLogModalBtn action-button">Fechar</button>
+                <button type="button" class="action-button secondary resFecharLogModalBtn">Fechar</button>
             </div>
         </div>
     </div>
 
-    <script src="js/reservas.js"></script>
-</body>
+    <script src="js/auth_global.js" defer></script>
+    <script src="js/reservas.js" defer></script>
+    </body>
 </html>
