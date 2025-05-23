@@ -125,7 +125,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Limpar KPIs se não houver dados
                 if(kpiReceitaTotalEl) kpiReceitaTotalEl.textContent = formatarMoeda(0);
                 if(kpiDespesasTotalEl) kpiDespesasTotalEl.textContent = formatarMoeda(0);
-                // ... e assim por diante para outros KPIs
+                if(kpiLucroTotalEl) kpiLucroTotalEl.textContent = formatarMoeda(0);
+                if(kpiTotalReservasEl) kpiTotalReservasEl.textContent = 0;
+                if(kpiTaxaCancelamentoEl) kpiTaxaCancelamentoEl.textContent = '0.0%';
+                if(kpiTaxaOcupacaoEl) kpiTaxaOcupacaoEl.textContent = '0.0% (Exemplo)';
             }
 
             // 2. Chamar RPC para Receita por Parque

@@ -201,8 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         timestamp_registo_original: reg.timestamp || reg.data_hora,
                         dados_json: reg
                     }));
-                    // const { error } = await supabase.from('produtividade_dados_uploads').insert(dadosParaInserir);
-                    // if (error) throw error;
+                    const { error } = await supabase.from('produtividade_dados_uploads').insert(dadosParaInserir);
+                    if (error) throw error;
                     console.log("Dados JSON para inserir (simulado):", dadosParaInserir);
                     mensagensStatus.push(`Ficheiro JSON "${ficheiroVelocidade.name}" processado com ${dadosParaInserir.length} registos (simulado).`);
                 } else {
@@ -228,8 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         timestamp_registo_original: row['Data Movimento'] || row['data_hora_inicio_mov'],
                         dados_json: row
                     }));
-                    // const { error } = await supabase.from('produtividade_dados_uploads').insert(dadosParaInserir);
-                    // if (error) throw error;
+                    const { error } = await supabase.from('produtividade_dados_uploads').insert(dadosParaInserir);
+                    if (error) throw error;
                     console.log("Dados Excel para inserir (simulado):", dadosParaInserir);
                     mensagensStatus.push(`Ficheiro Excel "${ficheiroMovimentacoes.name}" processado com ${dadosParaInserir.length} registos (simulado).`);
                 } else {
@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await carregarCondutoresParaSelectProd();
         console.log("Subaplicação de Produtividade de Condutores inicializada.");
         // Opcional: Disparar uma análise inicial com os filtros padrão
-        // analisarBtnEl.click(); 
+        analisarBtnEl.click(); 
     }
 
     initProdutividadePage();

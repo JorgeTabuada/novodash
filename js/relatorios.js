@@ -53,6 +53,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Funções Auxiliares ---
+function formatarData(isoDateString) {
+    if (!isoDateString) return '';
+    // Check if isoDateString is already in DD/MM/YYYY format to prevent re-formatting
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(isoDateString)) {
+        return isoDateString;
+    }
+    const dateParts = isoDateString.split('-'); // Expects YYYY-MM-DD
+    if (dateParts.length === 3) {
+        const [year, month, day] = dateParts;
+        return `${day}/${month}/${year}`;
+    }
+    // Fallback for unexpected format, try parsing with Date object
+    // This is more robust but might have timezone implications if not handled carefully
+    // For simplicity, we'll prefer direct string manipulation if format is known (YYYY-MM-DD)
+    try {
+        const date = new Date(isoDateString);
+        // Check if date is valid after parsing
+        if (isNaN(date.getTime())) {
+            console.warn('formatarData: Invalid date string received:', isoDateString);
+            return isoDateString; // Return original if invalid
+        }
+        const dia = String(date.getDate()).padStart(2, '0');
+        const mes = String(date.getMonth() + 1).padStart(2, '0'); // Meses são 0-indexed
+        const ano = date.getFullYear();
+        return `${dia}/${mes}/${ano}`;
+    } catch (e) {
+        console.error('formatarData: Error parsing date string:', isoDateString, e);
+        return isoDateString; // Return original on error
+    }
+}
+
     function mostrarSpinner(show = true) { loadingSpinnerEl.style.display = show ? 'block' : 'none'; }
     function formatValue(value, formatType) {
         if (value === null || value === undefined) return 'N/A';
@@ -277,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setupFiltros();
         // Por defeito, gerar relatório anual dos últimos 2 anos
         // A RPC `get_relatorio_geral` precisa ser criada no Supabase
-        // await gerarRelatorioBtnEl.click(); // Descomentar após criar a RPC
+        await gerarRelatorioBtnEl.click(); // Descomentar após criar a RPC
         console.log("Subaplicação de Relatórios inicializada.");
     }
 

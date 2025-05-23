@@ -374,188 +374,226 @@
 
     <script src="js/auth_global.js" defer></script>
     <script>
-        // Lógica principal da página index.html (v1.1 - Lógica de UI Ajustada)
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM completamente carregado e analisado (index.html v1.1).");
+        // Lógica principal da página index.html (v1.2 - Hoisting de funções e variáveis)
+        console.log("index.html v1.2 script block parsing started.");
 
-            const loginPage = document.getElementById('loginPage');
-            const dashboardPage = document.getElementById('dashboardPage');
+        // DOM Elementos Globais (para acesso por showPagePrincipal antes do DOMContentLoaded)
+        // É crucial que estes IDs existam no HTML acima E que o script seja colocado no fim do body.
+        const loginPage = document.getElementById('loginPage');
+        const dashboardPage = document.getElementById('dashboardPage');
+        const userNameDisplay = document.getElementById('userName');
+        const parkSelector = document.getElementById('parkSelector');
+        const categoriesLayoutContainer = document.getElementById('categoriesLayoutContainer');
+        
+        const messageModal = document.getElementById('messageModal');
+        const modalTitleEl = document.getElementById('modalTitle');
+        const modalMessageTextEl = document.getElementById('modalMessageText');
+        const modalCloseButton = document.getElementById('modalCloseButton'); // Global para ser usado por showModalMessage/closeModalMessage
+
+        // Constantes e Definições Globais (para acesso pelas funções hoisted)
+        const subApps = [
+            { id: 'recolhas', name: 'Recolhas', category: 'Operacional' }, 
+            { id: 'entregas', name: 'Entregas', category: 'Operacional' }, 
+            { id: 'caixa_multipark', name: 'Caixa Multipark', category: 'Operacional' }, 
+            { id: 'cancelamentos', name: 'Cancelamentos', category: 'Operacional' }, 
+            { id: 'reservas', name: 'Reservas', category: 'Operacional' },
+            { id: 'confirmacao_caixa', name: 'Confirmação de Caixa', category: 'Operacional' }, 
+            { id: 'marketing', name: 'Marketing', category: 'Análises' },
+            { id: 'relatorios', name: 'Relatórios', category: 'Análises' },
+            { id: 'produtividade_condutores', name: 'Produtividade Condutores', category: 'Análises' },
+            { id: 'comportamentos', name: 'Comportamentos', category: 'Análises' },
+            { id: 'mapa_ocupacao', name: 'Mapa de Ocupação', category: 'Análises' },
+            { id: 'bi_interno', name: 'BI Interno', category: 'Análises' },
+            { id: 'despesas', name: 'Despesas', category: 'Gestão' },
+            { id: 'faturacao', name: 'Faturação', category: 'Gestão' },
+            { id: 'horarios_ordenados', name: 'Horários & Ordenados', category: 'Gestão' },
+            { id: 'projetos', name: 'Projetos', category: 'Gestão' },
+            { id: 'tarefas', name: 'Tarefas', category: 'Gestão' },   
+            { id: 'formacao_apoio', name: 'Formação & Apoio', category: 'Administração e Suporte' },
+            { id: 'perdidos_achados', name: 'Perdidos & Achados', category: 'Administração e Suporte' },
+            { id: 'comentarios_reclamacoes', name: 'Comentários & Reclamações', category: 'Administração e Suporte' },
+            { id: 'auditorias_internas', name: 'Auditorias Internas', category: 'Administração e Suporte' },
+            { id: 'acessos_alteracoes', name: 'Acessos e Alterações', category: 'Administração e Suporte' }
+        ];
+        
+        const fileNameMapping = {
+            'recolhas': 'recolhas.html', 
+            'reservas': 'reservas.html', 
+            'despesas': 'despesas.html', 
+            'tarefas': 'tarefas.html',   
+            'projetos': 'projetos.html', 
+            'entregas': 'entregas_v2.html', 
+            'caixa_multipark': 'Caixa Multipark.html',
+            'cancelamentos': 'cancelamentos_v2.html', 
+            'confirmacao_caixa': 'confirmacao_caixa_v2.html', 
+            'marketing': 'marketing.html', 
+            'relatorios': 'relatorios.html',
+            'produtividade_condutores': 'produtividade_condutores.html',
+            'comportamentos': 'comportamentos.html',
+            'mapa_ocupacao': 'mapa_ocupacao.html',
+            'bi_interno': 'bi_interno.html',
+            'faturacao': 'Faturaçao.html', // Corrigido para corresponder ao nome do ficheiro real
+            'horarios_ordenados': 'horarios_ordenados.html', // Ficheiro não existe, mas mantendo a lógica
+            'formacao_apoio': 'formacao_apoio.html',
+            'perdidos_achados': 'perdidos_achados.html',
+            'comentarios_reclamacoes': 'comentarios_reclamacoes.html', // Corrigido
+            'auditorias_internas': 'auditorias_internas.html',
+            'acessos_alteracoes': 'acessos_alteracoes.html' // Corrigido
+        };
+
+        const categoryCellMapping = {
+            'Operacional':'categoryCell-operacional',
+            'Gestão':'categoryCell-gestao',
+            'Administração e Suporte':'categoryCell-admin_suporte',
+            'Análises':'categoryCell-analises'
+        };
+        const orderedCategoryNames = ['Operacional', 'Gestão', 'Análises', 'Administração e Suporte'];
+
+        function showModalMessage(title, message) {
+            if(modalTitleEl) modalTitleEl.textContent = title;
+            if(modalMessageTextEl) modalMessageTextEl.textContent = message;
+            if(messageModal) messageModal.classList.remove('hidden');
+        }
+        function closeModalMessage() {
+            if(messageModal) messageModal.classList.add('hidden');
+        }
+        
+        function navigateToSubAppPage(appId) {
+            console.log(`index.html - Navegando para subaplicação (externa): ${appId}`);
+            const fileName = fileNameMapping[appId]; // Usar apenas o mapeamento
+            
+            if (fileName) {
+                console.log(`index.html - Redirecionando para: ${fileName}`);
+                window.location.href = fileName;
+            } else {
+                showModalMessage('Erro de Navegação', `Ficheiro não configurado para '${appId}'. Verifique fileNameMapping.`);
+                console.error(`index.html - Nome de ficheiro não determinado para appId: ${appId}. Verifique fileNameMapping.`);
+            }
+        }
+
+        function updateDashboardHeader() {
+            console.log("index.html - Atualizando cabeçalho do dashboard...");
+            if (!userNameDisplay || !parkSelector) { // Verifica se os elementos globais estão acessíveis
+                console.error("index.html - userNameDisplay ou parkSelector não estão definidos no escopo global ao chamar updateDashboardHeader.");
+                return;
+            }
+            const userProfileString = localStorage.getItem('userProfile');
+            if (!userProfileString) {
+                console.warn("index.html - Perfil do utilizador não encontrado no localStorage para updateDashboardHeader.");
+                userNameDisplay.textContent = 'UTILIZADOR';
+                return;
+            }
+            try {
+                const userProfile = JSON.parse(userProfileString);
+                const userName = userProfile.full_name || userProfile.email?.split('@')[0] || 'UTILIZADOR';
+                userNameDisplay.textContent = userName.toUpperCase();
+                console.log("index.html - Nome do utilizador atualizado para:", userName.toUpperCase());
+            } catch (e) {
+                console.error("index.html - Erro ao parsear userProfile do localStorage:", e);
+                userNameDisplay.textContent = 'UTILIZADOR';
+            }
+
+            const selPark = localStorage.getItem('multiparkSelectedPark');
+            if (selPark && parkSelector.querySelector(`option[value="${selPark}"]`)) {
+                parkSelector.value = selPark;
+            } else if (parkSelector.options.length > 0) {
+                parkSelector.value = parkSelector.options[0].value;
+                localStorage.setItem('multiparkSelectedPark', parkSelector.value);
+            }
+        }
+
+        function renderDashboardSubAppButtons() {
+            if (!categoriesLayoutContainer) { // Verifica se o elemento global está acessível
+                console.error("index.html - categoriesLayoutContainer não está definido no escopo global ao chamar renderDashboardSubAppButtons.");
+                return;
+            }
+            console.log("index.html - Renderizando botões do dashboard...");
+            document.querySelectorAll('.category-group-placeholder').forEach(ph => ph.innerHTML = '');
+
+            const appsByCategory = subApps.reduce((acc, app) => {
+                if (!acc[app.category]) acc[app.category] = [];
+                acc[app.category].push(app);
+                return acc;
+            }, {});
+
+            orderedCategoryNames.forEach(categoryName => {
+                const cellId = categoryCellMapping[categoryName];
+                const targetCell = document.getElementById(cellId);
+
+                if (targetCell && appsByCategory[categoryName] && appsByCategory[categoryName].length > 0) {
+                    targetCell.innerHTML = ''; 
+                    const catDiv = document.createElement('div'); 
+                    catDiv.className = 'category-group';
+                    
+                    const titleH2 = document.createElement('h2'); 
+                    titleH2.className = 'category-title'; 
+                    titleH2.textContent = categoryName; 
+                    catDiv.appendChild(titleH2);
+                    
+                    const gridDiv = document.createElement('div'); 
+                    gridDiv.className = 'dashboard-grid';
+                    
+                    appsByCategory[categoryName].sort((a,b) => a.name.localeCompare(b.name)).forEach(app => {
+                        const btn = document.createElement('button'); 
+                        btn.className = 'subapp-button-dashboard';
+                        btn.dataset.appId = app.id; 
+                        btn.textContent = app.name;
+                        btn.addEventListener('click', () => navigateToSubAppPage(app.id)); // navigateToSubAppPage é global
+                        gridDiv.appendChild(btn);
+                    });
+                    catDiv.appendChild(gridDiv); 
+                    targetCell.appendChild(catDiv);
+                } else if (targetCell) {
+                     targetCell.innerHTML = `<div class="category-group"><h2 class="category-title">${categoryName}</h2><p class="text-xs text-gray-500 p-4">Sem aplicações nesta categoria.</p></div>`;
+                }
+            });
+        }
+
+        window.showPagePrincipal = function(pageName) {
+            console.log("index.html - showPagePrincipal chamada com:", pageName);
+            if (!loginPage || !dashboardPage) {
+                console.error("index.html - Elementos loginPage ou dashboardPage não encontrados (deveriam ser globais e disponíveis).");
+                return;
+            }
+
+            loginPage.classList.add('hidden');
+            dashboardPage.classList.add('hidden');
+
+            if (pageName === 'login') {
+                console.log("index.html - Mostrando página de LOGIN.");
+                loginPage.classList.remove('hidden');
+            } else if (pageName === 'dashboard') {
+                console.log("index.html - Mostrando página de DASHBOARD.");
+                dashboardPage.classList.remove('hidden');
+                updateDashboardHeader(); // Global
+                renderDashboardSubAppButtons(); // Global
+            } else {
+                console.warn("index.html - showPagePrincipal: Página desconhecida:", pageName, ". Mostrando login por defeito.");
+                loginPage.classList.remove('hidden');
+            }
+        }
+        console.log("index.html - window.showPagePrincipal está agora definida globalmente.");
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM completamente carregado e analisado (index.html v1.2).");
+
+            // Elementos obtidos localmente para event listeners e lógica do DOMContentLoaded
             const loginForm = document.getElementById('loginForm');
             const loginErrorMessage = document.getElementById('loginErrorMessage');
             const logoutButton = document.getElementById('logoutButton');
-            const userNameDisplay = document.getElementById('userName');
-            const parkSelector = document.getElementById('parkSelector');
-            const categoriesLayoutContainer = document.getElementById('categoriesLayoutContainer');
-            
-            const messageModal = document.getElementById('messageModal');
-            const modalTitleEl = document.getElementById('modalTitle');
-            const modalMessageTextEl = document.getElementById('modalMessageText');
-            const modalCloseButton = document.getElementById('modalCloseButton');
-
-            // Definição das Subaplicações (agora todas navegam para ficheiros externos)
-            const subApps = [
-                { id: 'recolhas', name: 'Recolhas', category: 'Operacional' }, 
-                { id: 'entregas', name: 'Entregas', category: 'Operacional' }, 
-                { id: 'caixa_multipark', name: 'Caixa Multipark', category: 'Operacional' }, 
-                { id: 'cancelamentos', name: 'Cancelamentos', category: 'Operacional' }, 
-                { id: 'reservas', name: 'Reservas', category: 'Operacional' },
-                { id: 'confirmacao_caixa', name: 'Confirmação de Caixa', category: 'Operacional' }, 
-                { id: 'marketing', name: 'Marketing', category: 'Análises' },
-                { id: 'relatorios', name: 'Relatórios', category: 'Análises' },
-                { id: 'produtividade_condutores', name: 'Produtividade Condutores', category: 'Análises' },
-                { id: 'comportamentos', name: 'Comportamentos', category: 'Análises' },
-                { id: 'mapa_ocupacao', name: 'Mapa de Ocupação', category: 'Análises' },
-                { id: 'bi_interno', name: 'BI Interno', category: 'Análises' },
-                { id: 'despesas', name: 'Despesas', category: 'Gestão' },
-                { id: 'faturacao', name: 'Faturação', category: 'Gestão' },
-                { id: 'horarios_ordenados', name: 'Horários & Ordenados', category: 'Gestão' },
-                { id: 'projetos', name: 'Projetos', category: 'Gestão' },
-                { id: 'tarefas', name: 'Tarefas', category: 'Gestão' },   
-                { id: 'formacao_apoio', name: 'Formação & Apoio', category: 'Administração e Suporte' },
-                { id: 'perdidos_achados', name: 'Perdidos & Achados', category: 'Administração e Suporte' },
-                { id: 'comentarios_reclamacoes', name: 'Comentários & Reclamações', category: 'Administração e Suporte' },
-                { id: 'auditorias_internas', name: 'Auditorias Internas', category: 'Administração e Suporte' },
-                { id: 'acessos_alteracoes', name: 'Acessos e Alterações', category: 'Administração e Suporte' }
-            ];
-            
-            const fileNameMapping = {
-                'recolhas': 'recolhas.html', 
-                'reservas': 'reservas.html', 
-                'despesas': 'despesas.html', 
-                'tarefas': 'tarefas.html',   
-                'projetos': 'projetos.html', 
-                'entregas': 'entregas_v2.html', 
-                'caixa_multipark': 'Caixa Multipark.html',
-                'cancelamentos': 'cancelamentos_v2.html', 
-                'confirmacao_caixa': 'confirmacao_caixa_v2.html', 
-                'marketing': 'marketing.html', 
-                'relatorios': 'relatorios.html',
-                'produtividade_condutores': 'produtividade_condutores.html',
-                'comportamentos': 'comportamentos.html',
-                'mapa_ocupacao': 'mapa_ocupacao.html',
-                'bi_interno': 'bi_interno.html',
-                'faturacao': 'gestao_faturas.html', 
-                'horarios_ordenados': 'horarios_ordenados.html',
-                'formacao_apoio': 'formacao_apoio.html',
-                'perdidos_achados': 'perdidos_achados.html',
-                'comentarios_reclamacoes': 'gestao_reclamacoes.html', 
-                'auditorias_internas': 'auditorias_internas.html',
-                'acessos_alteracoes': 'gestao_utilizadores.html' 
-            };
-
-            const categoryCellMapping = {
-                'Operacional':'categoryCell-operacional',
-                'Gestão':'categoryCell-gestao',
-                'Administração e Suporte':'categoryCell-admin_suporte',
-                'Análises':'categoryCell-analises'
-            };
-            const orderedCategoryNames = ['Operacional', 'Gestão', 'Análises', 'Administração e Suporte'];
-
-            function showModalMessage(title, message) {
-                if(modalTitleEl) modalTitleEl.textContent = title;
-                if(modalMessageTextEl) modalMessageTextEl.textContent = message;
-                if(messageModal) messageModal.classList.remove('hidden');
-            }
-            function closeModalMessage() {
-                if(messageModal) messageModal.classList.add('hidden');
-            }
-            if(modalCloseButton) modalCloseButton.addEventListener('click', closeModalMessage);
+            // modalCloseButton é global, mas o listener é específico para quando o DOM está pronto
+            if(modalCloseButton) modalCloseButton.addEventListener('click', closeModalMessage); // closeModalMessage é global
+            // messageModal é global, mas o listener é específico para quando o DOM está pronto
             if(messageModal) messageModal.addEventListener('click', (event) => { 
-                if (event.target === messageModal) closeModalMessage(); 
+                if (event.target === messageModal) closeModalMessage(); // closeModalMessage é global
             });
-
-            // Função para mostrar a página principal (Login ou Dashboard)
-            // Esta função é chamada por auth_global.js
-            window.showPagePrincipal = function(pageName) {
-                console.log("index.html - showPagePrincipal chamada com:", pageName);
-                if (!loginPage || !dashboardPage) {
-                    console.error("index.html - Elementos loginPage ou dashboardPage não encontrados.");
-                    return;
-                }
-                loginPage.classList.add('hidden');
-                dashboardPage.classList.add('hidden');
-                // As secções de subaplicações internas (despesasPage, etc.) já não são geridas aqui para visibilidade.
-
-                if (pageName === 'login') {
-                    console.log("index.html - Mostrando página de LOGIN.");
-                    loginPage.classList.remove('hidden');
-                } else if (pageName === 'dashboard') {
-                    console.log("index.html - Mostrando página de DASHBOARD.");
-                    dashboardPage.classList.remove('hidden');
-                    // Atualizar o conteúdo do dashboard quando ele é mostrado
-                    updateDashboardHeader();
-                    renderDashboardSubAppButtons();
-                } else {
-                    console.warn("index.html - showPagePrincipal: Página desconhecida:", pageName, ". Mostrando login por defeito.");
-                    loginPage.classList.remove('hidden');
-                }
-            }
-            
-            function renderDashboardSubAppButtons() {
-                if (!categoriesLayoutContainer) {
-                    console.error("index.html - categoriesLayoutContainer não encontrado.");
-                    return;
-                }
-                console.log("index.html - Renderizando botões do dashboard...");
-                document.querySelectorAll('.category-group-placeholder').forEach(ph => ph.innerHTML = '');
-
-                const appsByCategory = subApps.reduce((acc, app) => {
-                    if (!acc[app.category]) acc[app.category] = [];
-                    acc[app.category].push(app);
-                    return acc;
-                }, {});
-
-                orderedCategoryNames.forEach(categoryName => {
-                    const cellId = categoryCellMapping[categoryName];
-                    const targetCell = document.getElementById(cellId);
-
-                    if (targetCell && appsByCategory[categoryName] && appsByCategory[categoryName].length > 0) {
-                        targetCell.innerHTML = ''; 
-                        const catDiv = document.createElement('div'); 
-                        catDiv.className = 'category-group';
-                        
-                        const title = document.createElement('h2'); 
-                        title.className = 'category-title'; 
-                        title.textContent = categoryName; 
-                        catDiv.appendChild(title);
-                        
-                        const gridDiv = document.createElement('div'); 
-                        gridDiv.className = 'dashboard-grid';
-                        
-                        appsByCategory[categoryName].sort((a,b) => a.name.localeCompare(b.name)).forEach(app => {
-                            const btn = document.createElement('button'); 
-                            btn.className = 'subapp-button-dashboard';
-                            btn.dataset.appId = app.id; 
-                            btn.textContent = app.name;
-                            btn.addEventListener('click', () => navigateToSubAppPage(app.id));
-                            gridDiv.appendChild(btn);
-                        });
-                        catDiv.appendChild(gridDiv); 
-                        targetCell.appendChild(catDiv);
-                    } else if (targetCell) {
-                         targetCell.innerHTML = `<div class="category-group"><h2 class="category-title">${categoryName}</h2><p class="text-xs text-gray-500 p-4">Sem aplicações nesta categoria.</p></div>`;
-                    }
-                });
-            }
-            
-            function navigateToSubAppPage(appId) {
-                console.log(`index.html - Navegando para subaplicação (externa): ${appId}`);
-                const fileName = fileNameMapping[appId] || `${appId}.html`;
-                
-                if (fileName) {
-                    console.log(`index.html - Redirecionando para: ${fileName}`);
-                    window.location.href = fileName;
-                } else {
-                    showModalMessage('Erro de Navegação', `Ficheiro não configurado para '${appId}'.`);
-                    console.error(`index.html - Nome de ficheiro não determinado para appId: ${appId}.`);
-                }
-            }
 
             async function handleUserLogin(event) {
                 event.preventDefault();
                 console.log("index.html - Tentativa de login iniciada pelo formulário.");
-                const emailInput = document.getElementById('email');
-                const passwordInput = document.getElementById('password');
+                const emailInput = document.getElementById('email'); 
+                const passwordInput = document.getElementById('password'); 
                 const email = emailInput ? emailInput.value : null;
                 const password = passwordInput ? passwordInput.value : null;
 
@@ -572,13 +610,10 @@
                     return;
                 }
 
-                if (typeof window.signInUser === 'function') {
+                if (typeof window.signInUser === 'function') { // signInUser é de auth_global.js
                     const success = await window.signInUser(email, password);
                     if (success) {
-                        // A transição para o dashboard e atualização da UI
-                        // será agora gerida pelo evento 'SIGNED_IN' em auth_global.js,
-                        // que chama checkAuthStatus, que por sua vez chama showPagePrincipal('dashboard').
-                        console.log("index.html - signInUser retornou sucesso. Aguardando onAuthStateChange para atualizar UI.");
+                        console.log("index.html - signInUser retornou sucesso. AuthStateChange em auth_global.js deve tratar da UI.");
                     } else {
                         if (loginErrorMessage) {
                             loginErrorMessage.textContent = "Email ou palavra-passe inválidos. Tente novamente.";
@@ -586,97 +621,62 @@
                         }
                     }
                 } else {
-                    console.error("index.html - Função signInUser não definida.");
+                    console.error("index.html - Função signInUser (de auth_global.js) não definida.");
                     if (loginErrorMessage) {
                         loginErrorMessage.textContent = "Erro no sistema de login. Contacte o suporte.";
                         loginErrorMessage.classList.remove('hidden');
                     }
                 }
             }
-
-            function updateDashboardHeader() {
-                console.log("index.html - Atualizando cabeçalho do dashboard...");
-                const userProfileString = localStorage.getItem('userProfile');
-                if (!userProfileString) {
-                    console.warn("index.html - Perfil do utilizador não encontrado no localStorage para updateDashboardHeader.");
-                    if(userNameDisplay) userNameDisplay.textContent = 'UTILIZADOR';
-                    return;
-                }
-                try {
-                    const userProfile = JSON.parse(userProfileString);
-                    const userName = userProfile.full_name || userProfile.email?.split('@')[0] || 'UTILIZADOR';
-                    if (userNameDisplay) userNameDisplay.textContent = userName.toUpperCase();
-                    console.log("index.html - Nome do utilizador atualizado para:", userName.toUpperCase());
-                } catch (e) {
-                    console.error("index.html - Erro ao parsear userProfile do localStorage:", e);
-                    if(userNameDisplay) userNameDisplay.textContent = 'UTILIZADOR';
-                }
-
-                const selPark = localStorage.getItem('multiparkSelectedPark');
-                if (parkSelector) {
-                    if (selPark && parkSelector.querySelector(`option[value="${selPark}"]`)) {
-                        parkSelector.value = selPark;
-                    } else if (parkSelector.options.length > 0) {
-                        parkSelector.value = parkSelector.options[0].value;
-                        localStorage.setItem('multiparkSelectedPark', parkSelector.value);
-                    }
-                }
-            }
             
-            // --- Event Listeners ---
             if (loginForm) {
                 loginForm.addEventListener('submit', handleUserLogin);
             } else {
-                console.error("index.html - Elemento loginForm não encontrado.");
+                console.error("index.html - Elemento loginForm não encontrado no DOMContentLoaded.");
             }
 
             if (logoutButton) {
                 logoutButton.addEventListener('click', async () => {
                     console.log("index.html - Botão de logout clicado.");
-                    if (typeof window.handleLogoutGlobal === 'function') {
+                    if (typeof window.handleLogoutGlobal === 'function') { // handleLogoutGlobal é de auth_global.js
                         await window.handleLogoutGlobal(); 
                     } else {
-                        console.error("index.html - Função handleLogoutGlobal não definida.");
-                        localStorage.clear();
-                        window.showPagePrincipal('login'); // Fallback
+                        console.error("index.html - Função handleLogoutGlobal (de auth_global.js) não definida.");
+                        localStorage.clear(); 
+                        if(window.showPagePrincipal) window.showPagePrincipal('login'); 
                     }
                 });
             } else {
-                console.error("index.html - Elemento logoutButton não encontrado.");
+                console.error("index.html - Elemento logoutButton não encontrado no DOMContentLoaded.");
             }
 
-            if (parkSelector) {
+            if (parkSelector) { // parkSelector é global
                 parkSelector.addEventListener('change', (event) => {
                     localStorage.setItem('multiparkSelectedPark', event.target.value);
-                    showModalMessage('Informação', `Parque alterado para: ${event.target.value.toUpperCase()}`);
+                    showModalMessage('Informação', `Parque alterado para: ${event.target.value.toUpperCase()}`); // showModalMessage é global
                     window.dispatchEvent(new CustomEvent('parkChanged', { detail: { parkId: event.target.value } }));
                 });
+            } else {
+                 console.error("index.html - Elemento parkSelector (global) não encontrado no DOMContentLoaded para anexar listener.");
             }
 
-            // --- Inicialização da Aplicação ---
             async function initializeApp() {
-                console.log("index.html - Iniciando initializeApp...");
-                if (typeof window.checkAuthStatus === 'function') {
-                    // A chamada a checkAuthStatus aqui irá determinar se mostra login ou dashboard.
-                    // Se mostrar dashboard, a própria showPagePrincipal('dashboard') tratará de
-                    // chamar updateDashboardHeader e renderDashboardSubAppButtons.
+                console.log("index.html - Iniciando initializeApp (dentro de DOMContentLoaded)...");
+                if (typeof window.checkAuthStatus === 'function') { // checkAuthStatus é de auth_global.js
                     await window.checkAuthStatus(); 
                 } else {
-                    console.error("index.html - Função checkAuthStatus não definida na inicialização. Mostrando login por defeito.");
-                    window.showPagePrincipal('login'); // Fallback
+                    console.error("index.html - Função checkAuthStatus (de auth_global.js) não definida na inicialização. Mostrando login por defeito.");
+                    if(window.showPagePrincipal) window.showPagePrincipal('login'); 
                 }
-                console.log("index.html - initializeApp concluída.");
+                console.log("index.html - initializeApp concluída (dentro de DOMContentLoaded).");
             }
             
-            // O auth_global.js já tem um listener onAuthStateChange que chama checkAuthStatus
-            // para o evento INITIAL_SESSION. Portanto, a chamada explícita a initializeApp()
-            // pode ser redundante se o listener já tratar da carga inicial.
-            // Vamos manter o setTimeout para garantir que tudo está pronto.
             setTimeout(() => {
-                 initializeApp(); // Esta chamada irá despoletar a lógica de verificação inicial.
-            }, 250); // Pequeno delay para garantir que auth_global.js está carregado e o listener configurado.
+                 initializeApp(); 
+            }, 250); 
 
         }); 
+        console.log("index.html v1.2 script block parsing finished.");
     </script>
 </body>
 </html>
