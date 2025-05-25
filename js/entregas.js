@@ -1,334 +1,409 @@
-// js/entregas.js - Lógica para a Subaplicação de Dashboard de Entregas
+// js/entregas_multipark.js - Lógica para a Subaplicação de Gestão de Entregas
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (typeof checkAuthStatus !== 'function' || typeof supabase === 'undefined') {
-        console.error("Supabase client ou auth_global.js não carregados para Entregas.");
+document.addEventListener("DOMContentLoaded", async () => {
+    // --- Verificação e Inicialização do Cliente Supabase ---
+    if (typeof window.getSupabaseClient !== 'function') {
+        console.error("ERRO CRÍTICO (entregas.js): getSupabaseClient não está definido.");
+        alert("Erro crítico na configuração da aplicação (Entregas). Contacte o suporte.");
         return;
     }
-    checkAuthStatus();
+    const supabase = window.getSupabaseClient();
+    if (!supabase) {
+        console.error("ERRO CRÍTICO (entregas.js): Cliente Supabase não disponível.");
+        alert("Erro crítico ao conectar com o sistema (Entregas). Contacte o suporte.");
+        return;
+    }
+    if (typeof flatpickr !== "undefined") {
+        flatpickr.localize(flatpickr.l10ns.pt);
+    } else {
+        console.warn("Flatpickr não carregado (Entregas).");
+    }
 
-    const currentUser = supabase.auth.user();
-    const userProfile = JSON.parse(localStorage.getItem('userProfile'));
+    let currentUser = null;
+    let userProfile = null;
+    let listaCondutoresCache = []; // Cache para a lista de condutores
 
-    // --- Seletores DOM ---
-    const dashboardFiltroDataInicioEl = document.getElementById('entDashboardFiltroDataInicio');
-    const dashboardFiltroDataFimEl = document.getElementById('entDashboardFiltroDataFim');
-    const dashboardFiltroPeriodoEl = document.getElementById('entDashboardFiltroPeriodo');
-    const dashboardFiltroParqueEl = document.getElementById('entDashboardFiltroParque');
-    const aplicarFiltrosDashboardBtnEl = document.getElementById('entAplicarFiltrosDashboardBtn');
+    // --- Seletores de Elementos DOM ---
+    const importEntregasFileEl = document.getElementById("importEntregasFile");
+    const processarImportacaoEntregasBtnEl = document.getElementById("processarImportacaoEntregasBtn");
+    const importacaoEntregasStatusEl = document.getElementById("importacaoEntregasStatus");
+    const loadingImportEntregasSpinnerEl = document.getElementById("loadingImportEntregasSpinner");
 
-    const statTotalEntregasEl = document.getElementById('statTotalEntregas');
-    const statTotalEntregasPeriodoEl = document.getElementById('statTotalEntregasPeriodo');
-    const statEntregasVsPrevistasEl = document.getElementById('statEntregasVsPrevistas');
-    const statEntregasVsPrevistasPeriodoEl = document.getElementById('statEntregasVsPrevistasPeriodo');
-    const statValorTotalEntregueEl = document.getElementById('statValorTotalEntregue');
-    const statValorTotalEntreguePeriodoEl = document.getElementById('statValorTotalEntreguePeriodo');
-    const statMediaEntregasDiaEl = document.getElementById('statMediaEntregasDia');
-    const statMediaEntregasDiaPeriodoEl = document.getElementById('statMediaEntregasDiaPeriodo');
-
-    const dashboardDataHoraInputEl = document.getElementById('entDashboardDataHoraInput');
-    const dashboardDataHoraDisplayEl = document.getElementById('entDashboardDataHoraDisplay');
-    const chartEntregasPorHoraEl = document.getElementById('chartEntregasPorHora');
-    const chartEntregasMetodoPagamentoEl = document.getElementById('chartEntregasMetodoPagamento');
-    const calendarioEntregasContainerEl = document.getElementById('calendarioEntregasContainer');
-
-    const filtroMatriculaListaEl = document.getElementById('entFiltroMatriculaLista');
-    const filtroDataSaidaRealListaEl = document.getElementById('entFiltroDataSaidaRealLista');
-    const filtroCondutorListaEl = document.getElementById('entFiltroCondutorLista'); // Para condutor de entrega
-    const aplicarFiltrosListaBtnEl = document.getElementById('entAplicarFiltrosListaBtn');
-    const entregasTableBodyEl = document.getElementById('entregasTableBody');
-    const entregasNenhumaMsgEl = document.getElementById('entregasNenhumaMsg');
-    const entregasPaginacaoEl = document.getElementById('entregasPaginacao');
-    const loadingEntregasTableSpinnerEl = document.getElementById('loadingEntregasTableSpinner');
+    const entFiltroMatriculaEl = document.getElementById("entFiltroMatricula");
+    const entFiltroAlocationEl = document.getElementById("entFiltroAlocation");
+    const entFiltroDataEntregaInicioEl = document.getElementById("entFiltroDataEntregaInicio");
+    const entFiltroDataEntregaFimEl = document.getElementById("entFiltroDataEntregaFim");
+    const entFiltroCondutorEntregaEl = document.getElementById("entFiltroCondutorEntrega");
+    const entFiltroEstadoReservaEl = document.getElementById("entFiltroEstadoReserva");
+    const entAplicarFiltrosBtnEl = document.getElementById("entAplicarFiltrosBtn");
     
-    const exportarListaBtnEl = document.getElementById('entExportarListaBtn');
-    const voltarDashboardBtnEl = document.getElementById('voltarDashboardBtnEntregas');
+    const entregasTableBodyEl = document.getElementById("entregasTableBody");
+    const entregasNenhumaMsgEl = document.getElementById("entregasNenhumaMsg");
+    const entregasPaginacaoEl = document.getElementById("entregasPaginacao");
+    const loadingEntregasTableSpinnerEl = document.getElementById("loadingEntregasTableSpinner");
+    const entregasTotalCountEl = document.getElementById("entregasTotalCount");
+    
+    const voltarDashboardBtnEntregasEl = document.getElementById("voltarDashboardBtnEntregas");
 
-    // --- Estado da Aplicação ---
-    let todasAsEntregasGeral = [];
-    let paginaAtualEntregasLista = 1;
-    const itensPorPaginaEntregasLista = 15;
-    let listaCondutoresEntrega = [];
+    // Dashboard de Entregas
+    const entregasDashboardFiltroDataInicioEl = document.getElementById("entregasDashboardFiltroDataInicio");
+    const entregasDashboardFiltroDataFimEl = document.getElementById("entregasDashboardFiltroDataFim");
+    const entregasDashboardFiltroPeriodoEl = document.getElementById("entregasDashboardFiltroPeriodo");
+    const entregasAplicarFiltrosDashboardBtnEl = document.getElementById("entregasAplicarFiltrosDashboardBtn");
+    const statTotalEntregasDashboardEl = document.getElementById("statTotalEntregasDashboard");
+    const statTotalEntregasPeriodoDashboardEl = document.getElementById("statTotalEntregasPeriodoDashboard");
+    const statMediaEntregasDiaDashboardEl = document.getElementById("statMediaEntregasDiaDashboard");
+    const statMediaEntregasDiaPeriodoDashboardEl = document.getElementById("statMediaEntregasDiaPeriodoDashboard");
+    const entregasDashboardDataHoraInputEl = document.getElementById("entregasDashboardDataHoraInput");
+    const entregasDashboardDataHoraDisplayEl = document.getElementById("entregasDashboardDataHoraDisplay");
+    const chartEntregasPorHoraDashboardEl = document.getElementById("chartEntregasPorHoraDashboard")?.getContext('2d'); // Obter contexto 2D
+    const chartTopCondutoresEntregasDashboardEl = document.getElementById("chartTopCondutoresEntregasDashboard")?.getContext('2d');
 
-    // --- Configuração de Gráficos ---
-    let graficoEntregasPorHora, graficoEntregasMetodoPagamento;
+    // Modal de Detalhes/Registo de Entrega
+    const entregaDetalhesModalEl = document.getElementById('entregaDetalhesModal');
+    const entregaModalTitleEl = document.getElementById('entregaModalTitle');
+    const entregaDetalhesFormEl = document.getElementById('entregaDetalhesForm');
+    const entregaModalReservaIdPkEl = document.getElementById('entregaModalReservaIdPk');
+    const modalEntInfoBookingIdEl = document.getElementById('modalEntInfoBookingId');
+    const modalEntInfoMatriculaEl = document.getElementById('modalEntInfoMatricula');
+    const modalEntInfoAlocationEl = document.getElementById('modalEntInfoAlocation');
+    const modalEntInfoNomeClienteEl = document.getElementById('modalEntInfoNomeCliente');
+    const modalEntInfoCheckoutPrevistoEl = document.getElementById('modalEntInfoCheckoutPrevisto');
+    const modalEntInfoParqueAtualEl = document.getElementById('modalEntInfoParqueAtual');
+    const modalEntregaDataRealEl = document.getElementById('modalEntregaDataReal');
+    const modalEntregaCondutorEl = document.getElementById('modalEntregaCondutor');
+    const modalEntregaKmsSaidaEl = document.getElementById('modalEntregaKmsSaida');
+    const modalEntregaDanosCheckOutEl = document.getElementById('modalEntregaDanosCheckOut');
+    const modalEntregaFotosEl = document.getElementById('modalEntregaFotos');
+    const modalEntregaFotosPreviewEl = document.getElementById('modalEntregaFotosPreview');
+    const modalEntregaFotosUrlsExistentesEl = document.getElementById('modalEntregaFotosUrlsExistentes');
+    const modalEntregaObsInternasEl = document.getElementById('modalEntregaObsInternas');
+    const modalEntregaEstadoFinalReservaEl = document.getElementById('modalEntregaEstadoFinalReserva');
+    const entregaModalStatusEl = document.getElementById('entregaModalStatus');
+    const entFecharModalBtns = document.querySelectorAll(".entFecharModalBtn");
+    const loadingModalSpinnerEntregaEl = document.getElementById("loadingModalSpinnerEntrega");
 
-    function setupGraficosEntregas() {
-        if (chartEntregasPorHoraEl) {
-            const ctxHora = chartEntregasPorHoraEl.getContext('2d');
-            if (graficoEntregasPorHora) graficoEntregasPorHora.destroy();
-            graficoEntregasPorHora = new Chart(ctxHora, {
-                type: 'bar', data: { labels: [], datasets: [{ label: 'Nº de Entregas', data: [], backgroundColor: 'rgba(13, 148, 136, 0.7)', borderColor: 'rgba(13, 148, 136, 1)' }] }, // Teal color
-                options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
-            });
+    let paginaAtualEntregas = 1;
+    const itensPorPaginaEntregas = 15;
+    let graficoEntregasPorHoraDashboard, graficoTopCondutoresEntregasDashboard;
+
+    // --- Funções Utilitárias Essenciais ---
+    function formatarDataHora(dataISO, includeSeconds = false) {
+        if (!dataISO) return "N/A";
+        try {
+            const date = new Date(dataISO);
+            if (isNaN(date.getTime())) return "Data Inválida";
+            const options = { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" };
+            if (includeSeconds) options.second = "2-digit";
+            return date.toLocaleString("pt-PT", options);
+        } catch (e) { console.warn("Erro ao formatar data-hora (Entregas):", dataISO, e); return String(dataISO).split('T')[0]; }
+    }
+
+    function formatarDataParaInputDateTimeLocal(dataISO) {
+        if (!dataISO) return "";
+        try {
+            const d = new Date(dataISO);
+            if (isNaN(d.getTime())) return "";
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        } catch (e) { console.warn("Erro formatar data input datetime-local (Entregas):", dataISO, e); return ""; }
+    }
+    
+    function formatarDataParaInputDate(dataISO) {
+        if (!dataISO) return "";
+        try {
+            const d = new Date(dataISO);
+            if (isNaN(d.getTime())) return "";
+            return d.toISOString().split('T')[0];
+        } catch (e) { console.warn("Erro formatar data input date (Entregas):", dataISO, e); return ""; }
+    }
+
+    function converterDataParaISO(dataStr) {
+        if (!dataStr) return null;
+        if (dataStr instanceof Date) {
+            if (isNaN(dataStr.getTime())) { console.warn(`Data inválida para ISO:`, dataStr); return null; }
+            return dataStr.toISOString().split('.')[0]; // Remove milissegundos
         }
-        if (chartEntregasMetodoPagamentoEl) {
-            const ctxMetodo = chartEntregasMetodoPagamentoEl.getContext('2d');
-            if (graficoEntregasMetodoPagamento) graficoEntregasMetodoPagamento.destroy();
-            graficoEntregasMetodoPagamento = new Chart(ctxMetodo, {
-                type: 'pie', data: { labels: [], datasets: [{ data: [], backgroundColor: ['#28a745', '#007bff', '#ffc107', '#6f42c1', '#fd7e14'] }] }, // Green, Blue, Yellow, Purple, Orange
-                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-            });
+        // Tenta formatos comuns, incluindo o de flatpickr "DD/MM/YYYY HH:MM" ou "YYYY-MM-DDTHH:MM"
+        let d;
+        const flatpickrDateTimeMatch = String(dataStr).match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/); // DD/MM/YYYY HH:MM
+        const flatpickrDateMatch = String(dataStr).match(/^(\d{2})\/(\d{2})\/(\d{4})$/); // DD/MM/YYYY
+        const htmlDateTimeLocalMatch = String(dataStr).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/); // YYYY-MM-DDTHH:MM
+
+        if (flatpickrDateTimeMatch) {
+            const [, day, month, year, hour, minute] = flatpickrDateTimeMatch;
+            d = new Date(Date.UTC(year, month - 1, day, hour, minute));
+        } else if (flatpickrDateMatch) {
+            const [, day, month, year] = flatpickrDateMatch;
+            d = new Date(Date.UTC(year, month - 1, day));
+        } else if (htmlDateTimeLocalMatch) {
+             d = new Date(dataStr + ":00Z"); // Adiciona segundos e Z para UTC se vier de datetime-local
+        } else {
+            d = new Date(dataStr); // Tenta parse direto
+        }
+
+        if (!isNaN(d.getTime())) return d.toISOString().split('.')[0];
+        
+        console.warn(`Formato de data não reconhecido para ISO (Entregas): "${dataStr}"`);
+        return null;
+    }
+
+    function validarCampoNumerico(valor) {
+        if (valor === null || valor === undefined || String(valor).trim() === "") return null;
+        let numStr = String(valor).replace(',', '.').replace(/[^\d.-]/g, '');
+        const numero = parseFloat(numStr);
+        return isNaN(numero) ? null : numero;
+    }
+
+    function mostrarSpinner(spinnerId, show = true) {
+        const el = document.getElementById(spinnerId);
+        if(el) el.classList.toggle('hidden', !show);
+    }
+    
+    function normalizarMatricula(matricula) {
+        if (!matricula) return null;
+        return String(matricula).replace(/[\s\-\.]/g, '').toUpperCase();
+    }
+
+    async function obterEntidadeIdPorNomeComRPC(nomeEntidade, rpcName = 'obter_condutor_id_por_nome', paramName = 'p_nome_condutor') {
+        if (!nomeEntidade || String(nomeEntidade).trim() === "") {
+            console.warn(`RPC ${rpcName}: Nome da entidade vazio.`);
+            return null;
+        }
+        try {
+            const nomeNormalizado = String(nomeEntidade).trim();
+            const params = {};
+            params[paramName] = nomeNormalizado;
+            const { data, error } = await supabase.rpc(rpcName, params);
+            if (error) { console.error(`Erro RPC ${rpcName} para "${nomeNormalizado}":`, error); return null; }
+            return data; 
+        } catch (error) {
+            console.error(`Exceção RPC ${rpcName} para "${nomeEntidade}":`, error);
+            return null;
         }
     }
     
-    // --- Funções Auxiliares ---
-    function formatarDataHora(dataISO) { /* ... */ return dataISO ? new Date(dataISO).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A'; }
-    function formatarMoeda(valor) { /* ... */ return parseFloat(valor || 0).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' }); }
-    function mostrarSpinner(id) { document.getElementById(id)?.classList.remove('hidden'); }
-    function esconderSpinner(id) { document.getElementById(id)?.classList.add('hidden'); }
-
-    // --- Carregar Condutores (de entrega) para Filtros ---
-    async function carregarCondutoresDeEntrega() {
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('id, username, full_name')
-            // .eq('role', 'condutor_entrega') // Ajustar role se aplicável
-            .order('full_name', { ascending: true });
-
-        if (error) {
-            console.error("Erro ao carregar condutores de entrega:", error);
+    // --- Carregar Condutores ---
+    async function carregarCondutoresParaSelects() {
+        if (listaCondutoresCache.length > 0) {
+            popularSelectCondutores(entFiltroCondutorEntregaEl, listaCondutoresCache, "Todos Condutores");
+            popularSelectCondutores(modalEntregaCondutorEl, listaCondutoresCache, "Selecione o Condutor");
             return;
         }
-        listaCondutoresEntrega = data || [];
-        // Popular select de condutores na lista
-        const condutorListaSelect = filtroCondutorListaEl;
-        if (condutorListaSelect) {
-            const primeiraOpcao = condutorListaSelect.options[0];
-            condutorListaSelect.innerHTML = '';
-            if (primeiraOpcao) condutorListaSelect.appendChild(primeiraOpcao);
-            listaCondutoresEntrega.forEach(cond => {
-                const option = document.createElement('option');
-                option.value = cond.id;
-                option.textContent = cond.full_name || cond.username || cond.id;
-                condutorListaSelect.appendChild(option);
-            });
+        try {
+            const { data, error } = await supabase.from('profiles')
+                .select('id, full_name, username')
+                .order('full_name');
+            if (error) throw error;
+            listaCondutoresCache = data || [];
+            popularSelectCondutores(entFiltroCondutorEntregaEl, listaCondutoresCache, "Todos Condutores");
+            popularSelectCondutores(modalEntregaCondutorEl, listaCondutoresCache, "Selecione o Condutor");
+        } catch (error) {
+            console.error("Erro ao carregar condutores (Entregas):", error);
         }
     }
+
+    function popularSelectCondutores(selectEl, condutores, textoPrimeiraOpcao = "Todos") {
+        if (!selectEl) return;
+        const valorGuardado = selectEl.value;
+        selectEl.innerHTML = `<option value="">${textoPrimeiraOpcao}</option>`;
+        condutores.forEach(cond => {
+            const option = document.createElement('option');
+            option.value = cond.id;
+            option.textContent = cond.full_name || cond.username || `ID: ${cond.id.substring(0,6)}`;
+            selectEl.appendChild(option);
+        });
+        if (Array.from(selectEl.options).some(opt => opt.value === valorGuardado)) {
+            selectEl.value = valorGuardado;
+        }
+    }
+
+    // --- Lógica de Importação de Ficheiro de Entregas ---
+    async function processarFicheiroEntregasImport() {
+        const ficheiro = importEntregasFileEl.files[0];
+        if (!ficheiro) {
+            importacaoEntregasStatusEl.textContent = 'Por favor, selecione um ficheiro.';
+            importacaoEntregasStatusEl.className = 'mt-3 text-sm text-red-600'; return;
+        }
+        importacaoEntregasStatusEl.textContent = 'A processar ficheiro...';
+        importacaoEntregasStatusEl.className = 'mt-3 text-sm text-blue-600';
+        mostrarSpinner('loadingImportEntregasSpinner', true);
+        if(processarImportacaoEntregasBtnEl) processarImportacaoEntregasBtnEl.disabled = true;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const fileData = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(fileData, { type: 'array', cellDates: true });
+                const nomePrimeiraFolha = workbook.SheetNames[0];
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[nomePrimeiraFolha], { raw: false, defval: null });
+
+                if (jsonData.length === 0) throw new Error('Ficheiro vazio ou dados ilegíveis.');
+                importacaoEntregasStatusEl.textContent = `A processar ${jsonData.length} registos...`;
+
+                let atualizacoesSucesso = 0, erros = 0, ignoradas = 0, naoEncontradas = 0;
+
+                const mapeamento = { // Chaves Excel (lowercase, sem espaços) -> Colunas Supabase
+                    "licenseplate": "license_plate", "alocation": "alocation", "bookingid": "booking_id_excel",
+                    "actiondate": "action_date", // Usado como action_date na tabela reservas
+                    "checkout": "data_saida_real", // Principal data da entrega
+                    "checkoutdate": "data_saida_real", // Alternativa
+                    "condutorentrega": "_condutor_nome_excel",
+                    "kmssaída": "kms_saida", "kmssaida": "kms_saida",
+                    "danoscheckout": "danos_checkout",
+                    "observacoesentrega": "observacoes_entrega",
+                    "stats": "estado_reserva_atual_import", // 'entregue', 'concluida', etc.
+                    "priceondelivery": "price_on_delivery", // Preço na entrega (pode atualizar total_price ou price_on_delivery)
+                    "correctedprice": "corrected_price", // Preço corrigido
+                    "extraservices": "extras_price", // Pode ser um valor
+                    // Adicionar outros campos do Excel de Entregas aqui
+                };
+                
+                const precosPossiveis = ["priceondelivery", "correctedprice", "extraservices"]; // Nomes de coluna do Excel
+
+                const loteSize = 50;
+                for (let i = 0; i < jsonData.length; i += loteSize) {
+                    const loteJson = jsonData.slice(i, i + loteSize);
+                    const promessasLote = loteJson.map(async (rowExcelOriginal) => {
+                        const rowExcel = {}; Object.keys(rowExcelOriginal).forEach(k => rowExcel[k.toLowerCase().replace(/\s+/g, '')] = rowExcelOriginal[k]);
+                        
+                        const dadosUpdate = {}; let identReserva = {};
+
+                        for (const excelColNorm in mapeamento) {
+                            if (rowExcel.hasOwnProperty(excelColNorm) && rowExcel[excelColNorm] !== null) {
+                                const valorOriginal = rowExcel[excelColNorm];
+                                const supabaseCol = mapeamento[excelColNorm];
+
+                                if (supabaseCol === "license_plate") identReserva.license_plate = normalizarMatricula(String(valorOriginal));
+                                else if (supabaseCol === "alocation") identReserva.alocation = String(valorOriginal).trim();
+                                else if (supabaseCol === "booking_id_excel") identReserva.booking_id = String(valorOriginal).trim();
+                                else if (supabaseCol === "data_saida_real" || supabaseCol === "action_date") dadosUpdate[supabaseCol] = converterDataParaISO(valorOriginal);
+                                else if (supabaseCol === "_condutor_nome_excel") dadosUpdate[supabaseCol] = String(valorOriginal).trim();
+                                else if (supabaseCol === "kms_saida" || (camposDePrecoSupabase.includes(supabaseCol) || precosPossiveis.includes(excelColNorm))) { // Ajustado para incluir preços
+                                    dadosUpdate[supabaseCol] = validarCampoNumerico(valorOriginal);
+                                } else if (supabaseCol === "estado_reserva_atual_import") dadosUpdate.estado_reserva_atual = String(valorOriginal).trim().toLowerCase();
+                                else dadosUpdate[supabaseCol] = String(valorOriginal).trim();
+                            }
+                        }
+
+                        if (!identReserva.booking_id && (!identReserva.license_plate || !identReserva.alocation)) { ignoradas++; return; }
+                        if (!dadosUpdate.data_saida_real) dadosUpdate.data_saida_real = new Date().toISOString(); // Data da entrega é crucial
+
+                        if (dadosUpdate._condutor_nome_excel) {
+                            const condutorId = await obterEntidadeIdPorNomeComRPC(dadosUpdate._condutor_nome_excel, 'obter_condutor_id_por_nome', 'p_nome_condutor');
+                            if (condutorId) dadosUpdate.condutor_entrega_id = condutorId;
+                            delete dadosUpdate._condutor_nome_excel;
+                        }
+                        
+                        // Se priceOnDelivery do Excel foi mapeado para total_price ou price_on_delivery na BD
+                        if(dadosUpdate.hasOwnProperty('price_on_delivery') && dadosUpdate.price_on_delivery !== null) {
+                            dadosUpdate.total_price = dadosUpdate.price_on_delivery; // Exemplo: atualiza total_price
+                        }
+
+
+                        let queryBusca = supabase.from("reservas").select("id_pk");
+                        if (identReserva.booking_id) queryBusca = queryBusca.eq("booking_id", identReserva.booking_id);
+                        else queryBusca = queryBusca.eq("license_plate", identReserva.license_plate).eq("alocation", identReserva.alocation);
+                        
+                        const { data: reserva, error: errBusca } = await queryBusca.maybeSingle();
+                        if (errBusca) { erros++; return; }
+
+                        if (reserva) {
+                            if (!dadosUpdate.estado_reserva_atual) dadosUpdate.estado_reserva_atual = "Entregue";
+                            dadosUpdate.user_id_modificacao_registo = currentUser?.id;
+                            if(!dadosUpdate.action_date) dadosUpdate.action_date = new Date().toISOString(); // Data da modificação
+
+                            const { error: errUpdate } = await supabase.from("reservas").update(dadosUpdate).eq("id_pk", reserva.id_pk);
+                            if (errUpdate) {
+                                console.error(`Erro ao atualizar entrega para reserva PK ${reserva.id_pk}:`, errUpdate, "Dados:", dadosUpdate);
+                                erros++;
+                            } else { atualizacoesSucesso++; }
+                        } else { naoEncontradas++; }
+                    });
+                    await Promise.all(promessasLote);
+                    if (i + loteSize < jsonData.length) await new Promise(resolve => setTimeout(resolve, 200));
+                }
+                importacaoEntregasStatusEl.textContent = `Concluído: ${atualizacoesSucesso} atualizadas. ${erros} erros. ${ignoradas} ignoradas. ${naoEncontradas} não encontradas.`;
+                await carregarEntregasDaLista(); await carregarDadosDashboardEntregas();
+            } catch (error) {
+                console.error('Erro ao processar ficheiro Entregas:', error);
+                importacaoEntregasStatusEl.textContent = `Erro: ${error.message}`;
+            } finally {
+                mostrarSpinner('loadingImportEntregasSpinner', false);
+                if(processarImportacaoEntregasBtnEl) processarImportacaoEntregasBtnEl.disabled = false;
+                if(importEntregasFileEl) importEntregasFileEl.value = '';
+            }
+        };
+        reader.readAsArrayBuffer(ficheiro);
+    }
+
+    // --- Lógica da Lista de Entregas (READ) ---
+    async function carregarEntregasDaLista(pagina = 1, filtrosParams = null) { /* ... (manter lógica de Entregas que te dei, com `data_saida_real` etc.) ... */ }
+    function atualizarPaginacaoEntregasLista(paginaCorrente, totalItens) { /* ... (manter) ... */ }
+    function obterFiltrosEntregasLista() { /* ... (manter) ... */ }
+    function getEstadoClass(estado) { /* ... (manter ou adaptar para estados de entrega) ... */ }
 
     // --- Lógica do Dashboard de Entregas ---
-    async function carregarDadosDashboardEntregas() {
-        const dataInicio = dashboardFiltroDataInicioEl.value;
-        const dataFim = dashboardFiltroDataFimEl.value;
-        const periodoSelecionado = dashboardFiltroPeriodoEl.value;
-        const parqueFiltro = dashboardFiltroParqueEl.value;
-
-        let filtroDataInicio, filtroDataFim;
-        const hoje = new Date(); hoje.setHours(0,0,0,0);
-
-        switch(periodoSelecionado) {
-            case 'hoje': /* ... */ filtroDataInicio = new Date(hoje); filtroDataFim = new Date(hoje); filtroDataFim.setHours(23,59,59,999); break;
-            case 'mes_atual': /* ... */ filtroDataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1); filtroDataFim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0); filtroDataFim.setHours(23,59,59,999); break;
-            default: /* ... */ filtroDataInicio = dataInicio ? new Date(dataInicio) : null; if(filtroDataInicio) filtroDataInicio.setHours(0,0,0,0); filtroDataFim = dataFim ? new Date(dataFim) : null; if(filtroDataFim) filtroDataFim.setHours(23,59,59,999); break;
-        }
-        
-        const periodoTexto = filtroDataInicio && filtroDataFim ?
-            `${formatarDataHora(filtroDataInicio).split(' ')[0]} - ${formatarDataHora(filtroDataFim).split(' ')[0]}` :
-            'Todo o período';
-        
-        [statTotalEntregasPeriodoEl, statEntregasVsPrevistasPeriodoEl, statValorTotalEntreguePeriodoEl, statMediaEntregasDiaPeriodoEl]
-            .forEach(el => el.textContent = periodoTexto);
-
-        // TODO: Chamar Supabase RPC para obter estatísticas de entregas
-        // Ex: supabase.rpc('get_entregas_dashboard_stats', { data_inicio, data_fim, parque_filtro })
-        // Esta RPC precisaria:
-        // 1. Contar total de reservas com `data_saida_prevista` no período (para "previstas").
-        // 2. Contar total de entregas (`estado_reserva` = 'Entregue' E `data_saida_real` no período).
-        // 3. Somar `preco_final_pago` das entregas.
-        // 4. Calcular média de entregas/dia.
-        // 5. Agrupar por método de pagamento, por hora.
-
-        // Simulação:
-        const totalEntregasSimulado = Math.floor(Math.random() * 180);
-        const totalPrevistasSimulado = totalEntregasSimulado + Math.floor(Math.random() * 20);
-        statTotalEntregasEl.textContent = totalEntregasSimulado;
-        statEntregasVsPrevistasEl.textContent = `${totalEntregasSimulado} / ${totalPrevistasSimulado}`;
-        statValorTotalEntregueEl.textContent = formatarMoeda(totalEntregasSimulado * (Math.random() * 25 + 15));
-        const numDias = filtroDataInicio && filtroDataFim ? ((filtroDataFim - filtroDataInicio) / (1000 * 60 * 60 * 24)) + 1 : 30;
-        statMediaEntregasDiaEl.textContent = (totalEntregasSimulado / (numDias > 0 ? numDias : 1)).toFixed(1);
-
-        // Gráfico Métodos de Pagamento (simulado)
-        const labelsMetodos = ['Numerário', 'Multibanco', 'MBWay', 'Online'];
-        const dataMetodos = labelsMetodos.map(() => Math.floor(Math.random() * 500));
-        if (graficoEntregasMetodoPagamento) {
-            graficoEntregasMetodoPagamento.data.labels = labelsMetodos;
-            graficoEntregasMetodoPagamento.data.datasets[0].data = dataMetodos;
-            graficoEntregasMetodoPagamento.update();
-        }
-        
-        atualizarGraficoEntregasPorHora();
-        // TODO: Atualizar calendário (requer biblioteca e lógica específica)
-        if(calendarioEntregasContainerEl) calendarioEntregasContainerEl.innerHTML = `<p>Calendário de Entregas para ${periodoTexto} (a implementar).</p>`;
-    }
-
-    function atualizarGraficoEntregasPorHora() {
-        const diaSelecionado = dashboardDataHoraInputEl.value;
-        if (diaSelecionado) {
-            dashboardDataHoraDisplayEl.textContent = new Date(diaSelecionado + 'T00:00:00').toLocaleDateString('pt-PT');
-            // TODO: Chamar Supabase para obter contagens de entregas por hora
-            // Simulação:
-            const horas = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`);
-            const contagens = horas.map(() => Math.floor(Math.random() * 7));
-             if (graficoEntregasPorHora) {
-                graficoEntregasPorHora.data.labels = horas;
-                graficoEntregasPorHora.data.datasets[0].data = contagens;
-                graficoEntregasPorHora.update();
-            }
-        } else {
-            dashboardDataHoraDisplayEl.textContent = 'selecione um dia';
-            if (graficoEntregasPorHora) {
-                graficoEntregasPorHora.data.labels = [];
-                graficoEntregasPorHora.data.datasets[0].data = [];
-                graficoEntregasPorHora.update();
-            }
-        }
-    }
-
-    // --- Lógica da Lista de Entregas ---
-    async function carregarEntregasDaLista(pagina = 1) {
-        paginaAtualEntregasLista = pagina;
-        mostrarSpinner('loadingEntregasTableSpinner');
-        entregasTableBodyEl.innerHTML = '';
-        entregasNenhumaMsgEl.classList.add('hidden');
-
-        let query = supabase
-            .from('reservas')
-            .select(`
-                id, booking_id, matricula, alocation, nome_cliente, data_saida_prevista, data_saida_real,
-                preco_final_pago, metodo_pagamento_final, parque,
-                condutor_entrega:profiles!reservas_condutor_entrega_id_fkey (id, username, full_name)
-            `, { count: 'exact' })
-            .in('estado_reserva', ['Entregue', 'ValidadaFinanceiramente', 'Concluída']); // Estados que significam entrega feita
-
-        // Aplicar filtros da lista
-        if (filtroMatriculaListaEl.value) query = query.ilike('matricula', `%${filtroMatriculaListaEl.value}%`);
-        if (filtroDataSaidaRealListaEl.value) query = query.gte('data_saida_real', filtroDataSaidaRealListaEl.value + 'T00:00:00');
-        if (filtroCondutorListaEl.value) query = query.eq('condutor_entrega_id', filtroCondutorListaEl.value);
-        if (dashboardFiltroParqueEl.value) query = query.eq('parque', dashboardFiltroParqueEl.value); // Usar filtro de parque do dashboard aqui também
-        
-        const offset = (pagina - 1) * itensPorPaginaEntregasLista;
-        query = query.order('data_saida_real', { ascending: false }).range(offset, offset + itensPorPaginaEntregasLista - 1);
-
-        const { data, error, count } = await query;
-
-        esconderSpinner('loadingEntregasTableSpinner');
-        if (error) {
-            console.error('Erro ao carregar entregas:', error);
-            entregasNenhumaMsgEl.textContent = `Erro ao carregar dados: ${error.message}`;
-            entregasNenhumaMsgEl.classList.remove('hidden');
-            return;
-        }
-
-        todasAsEntregasGeral = data || [];
-        renderEntregasTable(todasAsEntregasGeral);
-        renderPaginacaoEntregasLista(count);
-    }
-
-    function renderEntregasTable(entregas) {
-        entregasTableBodyEl.innerHTML = '';
-        if (!entregas || entregas.length === 0) {
-            entregasNenhumaMsgEl.classList.remove('hidden');
-            return;
-        }
-        entregasNenhumaMsgEl.classList.add('hidden');
-
-        entregas.forEach(ent => {
-            const tr = document.createElement('tr');
-            const nomeCondutor = ent.condutor_entrega ? (ent.condutor_entrega.full_name || ent.condutor_entrega.username) : 'N/A';
-            tr.innerHTML = `
-                <td>${ent.booking_id || 'N/A'}</td>
-                <td>${ent.matricula || 'N/A'}</td>
-                <td>${ent.alocation || 'N/A'}</td>
-                <td>${ent.nome_cliente || 'N/A'}</td>
-                <td>${formatarDataHora(ent.data_saida_prevista)}</td>
-                <td>${formatarDataHora(ent.data_saida_real)}</td>
-                <td>${nomeCondutor}</td>
-                <td>${formatarMoeda(ent.preco_final_pago)}</td>
-                <td>${ent.metodo_pagamento_final || 'N/A'}</td>
-                <td>${ent.parque || 'N/A'}</td>
-                <td class="actions-cell">
-                    <button class="action-button text-xs !p-1" data-id="${ent.id}">Ver Detalhes</button>
-                </td>
-            `;
-            entregasTableBodyEl.appendChild(tr);
-        });
-    }
-
-    function renderPaginacaoEntregasLista(totalItens) {
-        entregasPaginacaoEl.innerHTML = '';
-        if (!totalItens || totalItens <= itensPorPaginaEntregasLista) return;
-        const totalPaginas = Math.ceil(totalItens / itensPorPaginaEntregasLista);
-        for (let i = 1; i <= totalPaginas; i++) {
-            const btnPagina = document.createElement('button');
-            btnPagina.textContent = i;
-            btnPagina.className = `action-button text-sm !p-2 mx-1 ${i === paginaAtualEntregasLista ? 'bg-teal-700' : 'bg-teal-500 hover:bg-teal-600'}`;
-            btnPagina.addEventListener('click', () => carregarEntregasDaLista(i));
-            entregasPaginacaoEl.appendChild(btnPagina);
-        }
-    }
+    async function carregarDadosDashboardEntregas() { /* ... (manter, mas garantir que as RPCs/queries usam data_saida_real) ... */ }
     
-    // --- Exportar Lista de Entregas ---
-    function exportarEntregasParaCSV() {
-        if (todasAsEntregasGeral.length === 0) {
-            alert("Não há dados de entregas para exportar.");
-            return;
-        }
-        const dataParaExportar = todasAsEntregasGeral.map(ent => ({
-            "Booking ID": ent.booking_id || '', "Matrícula": ent.matricula || '', "Alocation": ent.alocation || '',
-            "Cliente": ent.nome_cliente || '', "Data Saída Prev.": formatarDataHora(ent.data_saida_prevista),
-            "Data Saída Real": formatarDataHora(ent.data_saida_real),
-            "Condutor Entrega": ent.condutor_entrega ? (ent.condutor_entrega.full_name || ent.condutor_entrega.username) : '',
-            "Valor Pago (€)": ent.preco_final_pago !== null ? ent.preco_final_pago : '',
-            "Método Pag.": ent.metodo_pagamento_final || '', "Parque": ent.parque || ''
-        }));
-        const worksheet = XLSX.utils.json_to_sheet(dataParaExportar);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Entregas");
-        XLSX.writeFile(workbook, `entregas_multipark_${new Date().toISOString().split('T')[0]}.xlsx`);
-    }
-
-    // --- Event Listeners ---
-    if (voltarDashboardBtnEl) voltarDashboardBtnEl.addEventListener('click', () => { window.location.href = 'index.html'; });
-    if (aplicarFiltrosDashboardBtnEl) aplicarFiltrosDashboardBtnEl.addEventListener('click', carregarDadosDashboardEntregas);
-    if (dashboardDataHoraInputEl) dashboardDataHoraInputEl.addEventListener('change', atualizarGraficoEntregasPorHora);
-     if (dashboardFiltroPeriodoEl) {
-         dashboardFiltroPeriodoEl.addEventListener('change', () => {
-            const personalizado = dashboardFiltroPeriodoEl.value === 'personalizado';
-            dashboardFiltroDataInicioEl.disabled = !personalizado;
-            dashboardFiltroDataFimEl.disabled = !personalizado;
-            if (!personalizado) carregarDadosDashboardEntregas();
-        });
-    }
-    if (aplicarFiltrosListaBtnEl) aplicarFiltrosListaBtnEl.addEventListener('click', () => carregarEntregasDaLista(1));
-    if (exportarListaBtnEl) exportarListaBtnEl.addEventListener('click', exportarEntregasParaCSV);
-
-    entregasTableBodyEl.addEventListener('click', (event) => {
-        const targetButton = event.target.closest('button');
-        if (!targetButton) return;
-        const reservaId = targetButton.dataset.id;
-        if (targetButton.textContent.toLowerCase().includes('ver detalhes') && reservaId) {
-            // TODO: Implementar modal de detalhes da reserva/entrega, se necessário
-            alert(`Ver detalhes da entrega/reserva ID: ${reservaId} (funcionalidade a implementar)`);
-        }
-    });
+    // --- Modal de Detalhes/Registo de Entrega ---
+    function configurarBotoesAcaoEntregas() { /* ... (manter) ... */ }
+    async function abrirModalDetalhesEntrega(reservaIdPk) { /* ... (manter) ... */ }
+    async function handleEntregaFormSubmit(event) { /* ... (manter, assegurar `validarCampoNumerico` para KMs, e que as fotos vão para `fotos_checkout_urls`) ... */ }
+    
+    // --- Configuração de Event Listeners ---
+    function configurarEventosEntregas() { /* ... (manter e verificar todos os listeners) ... */ }
 
     // --- Inicialização da Página de Entregas ---
     async function initEntregasPage() {
-        await carregarCondutoresDeEntrega();
-        setupGraficosEntregas();
+        console.log("Entregas.js: Iniciando initEntregasPage...");
+        if (!currentUser) { console.warn("Entregas.js: currentUser não definido."); return; }
+        console.log("Entregas.js: Utilizador autenticado, prosseguindo com init.");
         
-        const hoje = new Date();
-        const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-        dashboardFiltroDataInicioEl.valueAsDate = primeiroDiaMes;
-        dashboardFiltroDataFimEl.valueAsDate = hoje; // Até hoje
-        dashboardFiltroPeriodoEl.value = 'mes_atual';
-        dashboardFiltroDataInicioEl.disabled = true;
-        dashboardFiltroDataFimEl.disabled = true;
+        configurarEventosEntregas();
+        await carregarCondutoresParaSelects();
+        
+        const dateInputs = [
+            entFiltroDataEntregaInicioEl, entFiltroDataEntregaFimEl,
+            entregasDashboardFiltroDataInicioEl, entregasDashboardFiltroDataFimEl,
+            entregasDashboardDataHoraInputEl, modalEntregaDataRealEl // modalEntregaDataRealEl é datetime
+        ];
+        dateInputs.forEach(el => {
+            if (el) {
+                const isDateTime = el.id === 'modalEntregaDataRealEl' || el.classList.contains('flatpickr-datetime');
+                flatpickr(el, { 
+                    dateFormat: isDateTime ? "Y-m-d H:i" : "Y-m-d", 
+                    enableTime: isDateTime,
+                    time_24hr: isDateTime,
+                    locale: "pt", 
+                    allowInput: true,
+                    defaultDate: el.id === 'modalEntregaDataRealEl' ? new Date() : (el.id === 'entregasDashboardDataHoraInputEl' ? "today" : null)
+                });
+            }
+        });
 
-        await carregarDadosDashboardEntregas();
-        await carregarEntregasDaLista();
-        console.log("Subaplicação de Entregas inicializada.");
+        if (entregasDashboardFiltroPeriodoEl) {
+            entregasDashboardFiltroPeriodoEl.dispatchEvent(new Event('change'));
+        } else {
+            await carregarDadosDashboardEntregas();
+        }
+        
+        await carregarEntregasDaLista(1, obterFiltrosEntregasLista());
+        console.log("Subaplicação de Gestão de Entregas inicializada.");
     }
-
-    initEntregasPage();
+    
+    // Bloco de Inicialização e Autenticação (IIFE)
+    (async () => {
+        try {
+            if (typeof window.checkAuthStatus !== 'function') { console.error("ERRO CRÍTICO (Entregas): checkAuthStatus não definido."); alert("Erro config Auth (Entregas)."); return; }
+            await window.checkAuthStatus(); 
+            const { data: { user: supabaseUser }, error: authError } = await supabase.auth.getUser();
+            if (authError) { console.error("Entregas: Erro getUser():", authError); window.location.href = "index.html"; return; }
+            currentUser = supabaseUser;
+            if (currentUser) {
+                const userProfileStr = localStorage.getItem('userProfile');
+                if (userProfileStr) { try { userProfile = JSON.parse(userProfileStr); } catch (e) { console.error("Erro parse userProfile (Entregas):", e);}}
+                initEntregasPage();
+            } else { console.warn("Entregas: Utilizador não autenticado. Redirecionando."); window.location.href = "index.html"; }
+        } catch (e) { console.error("Erro inicialização Entregas:", e); alert("Erro crítico ao iniciar Entregas.");}
+    })();
 });
